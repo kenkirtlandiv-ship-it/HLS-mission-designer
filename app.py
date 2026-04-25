@@ -5,10 +5,15 @@ import pandas as pd
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="HLS Logistics Terminal", layout="wide")
 
-# --- CUSTOM CSS (MINT & BLACK TERMINAL) ---
+# --- HARDENED TERMINAL CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
+
+    /* Remove top void and header lines */
+    .block-container { padding-top: 1rem !important; padding-bottom: 0rem !important; }
+    header { visibility: hidden; }
+    footer { visibility: hidden; }
 
     .stApp {
         background-color: #000000;
@@ -16,78 +21,88 @@ st.markdown("""
         font-family: 'JetBrains Mono', monospace;
     }
 
-    /* Standard Text */
-    h1, h2, h3, p, span, label, div, .stSelectbox, .stSlider {
+    /* All text elements */
+    h1, h2, h3, p, span, label, div {
         color: #98FF98 !important;
         text-transform: uppercase;
     }
 
-    /* Alignment Container */
+    /* Input Block Alignment */
     .input-block {
-        min-height: 450px;
+        min-height: 400px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
         border-top: 1px solid #98FF98;
-        padding-top: 20px;
+        padding-top: 15px;
     }
 
-    /* Slider Styling */
+    /* DARK SELECTBOX (Staging Orbit) */
+    div[data-baseweb="select"] > div {
+        background-color: #222 !important;
+        border: 1px solid #98FF98 !important;
+        color: #98FF98 !important;
+    }
+    div[data-testid="stSelectbox"] label { margin-bottom: 5px; }
+
+    /* DARK EXPANDER (Details) */
+    div[data-testid="stExpander"] {
+        background-color: #000000 !important;
+        border: 1px solid #98FF98 !important;
+        border-radius: 0px;
+    }
+    div[data-testid="stExpander"] > div { background-color: #000000 !important; }
+
+    /* Table Styling */
+    .stTable { background-color: #000 !important; border: 1px solid #98FF98; }
+
+    /* Sliders & Metrics */
     .stSlider [data-baseweb="slider"] { background-color: transparent; }
     [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 38px !important; }
 
-    /* Button Grid Styling */
+    /* Button Logic */
     .stButton > button {
         width: 100%;
         border: 1px solid #98FF98 !important;
-        background-color: #222 !important; /* Grey Unselected */
+        background-color: #1a1a1a !important;
         color: #98FF98 !important;
         border-radius: 0px;
-        height: 50px;
+        height: 45px;
         font-size: 10px !important;
-        margin-bottom: 5px;
+        margin-bottom: 4px;
     }
 
-    /* Horizontal line */
-    hr { border: 0; border-top: 1px solid #333; margin: 10px 0; }
-
-    /* Tanker visualization */
-    .tanker-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-        justify-content: flex-start;
-    }
+    .tanker-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- SVG PLACEHOLDERS ---
-TANKER_SVG = """<svg width="80" height="100" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 5 L15 25 L15 85 L10 95 L50 95 L45 85 L45 25 Z" fill="#777" stroke="#98FF98"/></svg>"""
-HLS_SVG = """<svg width="80" height="100" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 5 L15 30 L15 85 L45 85 L45 30 Z" fill="#FFF" stroke="#98FF98"/></svg>"""
-ORION_SVG = """<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M40 45 L50 25 L60 45 Z" fill="#777" stroke="#98FF98"/><rect x="5" y="50" width="90" height="4" fill="#333" stroke="#98FF98"/></svg>"""
+TANKER_SVG = """<svg width="80" height="100" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 5 L15 25 L15 85 L10 95 L50 95 L45 85 L45 25 Z" fill="#444" stroke="#98FF98"/></svg>"""
+HLS_SVG = """<svg width="80" height="100" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 5 L15 30 L15 85 L45 85 L45 30 Z" fill="#DDD" stroke="#98FF98"/></svg>"""
+ORION_SVG = """<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M40 45 L50 25 L60 45 Z" fill="#444" stroke="#98FF98"/><rect x="5" y="50" width="90" height="4" fill="#222" stroke="#98FF98"/></svg>"""
 
-# --- INITIALIZE STATE ---
+# --- STATE ---
 if 'selected_mode' not in st.session_state:
     st.session_state.selected_mode = "MODE 1: NO PUSH"
 
-# --- UI INPUTS ---
-st.markdown("<h2 style='text-align: center; letter-spacing: 5px;'>HLS MISSION LOGISTICS</h2>", unsafe_allow_html=True)
+# --- UI CONTENT ---
+st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 20px;'>HLS MISSION LOGISTICS</h2>", unsafe_allow_html=True)
 
 c1, c2, c3 = st.columns(3)
 
 with c1:
     st.markdown("<div class='input-block'>", unsafe_allow_html=True)
     st.markdown(TANKER_SVG, unsafe_allow_html=True)
-    st.write("TANKER SPECS")
-    refill_amount = st.slider("PROP PER REFILL (t)", 50, 200, 100, step=5)
+    st.write("TANKER CONFIG")
+    ref_amt = st.slider("PROP PER REFILL (t)", 50, 200, 100, step=5)
     cadence = st.slider("CADENCE (DAYS)", 1, 31, 7)
     st.markdown("</div>", unsafe_allow_html=True)
 
 with c2:
     st.markdown("<div class='input-block'>", unsafe_allow_html=True)
     st.markdown(HLS_SVG, unsafe_allow_html=True)
-    st.write("HLS SPECS")
-    dry_mass = st.slider("HLS DRY MASS (t)", 80, 250, 120, step=5)
+    st.write("HLS CONFIG")
+    dry_m = st.slider("HLS DRY MASS (t)", 80, 250, 120, step=5)
     isp = st.slider("ENGINE ISP (s)", 350, 380, 375)
     orbit = st.selectbox("STAGING ORBIT", ["NRHO", "LLO", "PCO"])
     st.markdown("</div>", unsafe_allow_html=True)
@@ -95,102 +110,87 @@ with c2:
 with c3:
     st.markdown("<div class='input-block'>", unsafe_allow_html=True)
     st.markdown(ORION_SVG, unsafe_allow_html=True)
-    st.write("ORION MISSION MODE")
+    st.write("ORION MODE")
     
-    # Mode Logic Mapping
-    possible_modes = ["MODE 1: NO PUSH", "MODE 2: LEO TO STAGING"]
-    if orbit == "LLO":
-        possible_modes += ["MODE 3: NRHO TO LLO", "MODE 4: PCO TO LLO"]
-    elif orbit == "PCO":
-        possible_modes += ["MODE 3: NRHO TO PCO"]
+    modes = ["MODE 1: NO PUSH", "MODE 2: LEO TO STAGING"]
+    if orbit == "LLO": modes += ["MODE 3: NRHO TO LLO", "MODE 4: PCO TO LLO"]
+    elif orbit == "PCO": modes += ["MODE 3: NRHO TO PCO"]
 
-    # Button Grid UI
-    for mode_name in possible_modes:
-        # Check if this is the active mode
-        is_active = st.session_state.selected_mode == mode_name
-        btn_label = f"▶ {mode_name}" if is_active else mode_name
-        
-        # Inject custom color for active button
-        if is_active:
-            st.markdown(f"<style>div.stButton > button:first-child:contains('{mode_name}') {{ background-color: #98FF98 !important; color: black !important; }}</style>", unsafe_allow_html=True)
-
-        if st.button(btn_label):
-            st.session_state.selected_mode = mode_name
+    for m in modes:
+        active = st.session_state.selected_mode == m
+        label = f"▶ {m}" if active else m
+        if active:
+            st.markdown(f"<style>div.stButton > button:first-child:contains('{m}') {{ background-color: #98FF98 !important; color: black !important; font-weight: bold; }}</style>", unsafe_allow_html=True)
+        if st.button(label):
+            st.session_state.selected_mode = m
             st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- BACKWARD MATH ENGINE ---
+# --- MATH ---
 G = 9.80665
-ORION_M = 27.0
+OM = 27.0
 DV = {
     "LEO_TO_TLI": 3200, "TLI_TO_NRHO": 450, "TLI_TO_LLO": 900, "TLI_TO_PCO": 800,
     "NRHO_TO_SURFACE": 2750, "LLO_TO_SURFACE": 2000, "PCO_TO_SURFACE": 2400
 }
 
-def run_telemetry():
-    mode = st.session_state.selected_mode
-    mission_log = []
+def get_telemetry():
+    m = st.session_state.selected_mode
+    log = []
+    
+    # 1. Ascent
+    dva = DV[f"{orbit}_TO_SURFACE"]
+    maf = dry_m
+    mai = maf * math.exp(dva / (isp * G))
+    log.append({"LEG": "ASCENT: SURFACE TO ORBIT", "DV": dva, "WET MASS": f"{mai:.1f}t", "DRY MASS": f"{maf:.1f}t", "VEHICLE": "HLS"})
 
-    # 1. Ascent (Ends at Dry Mass)
-    dv_ascent = DV[f"{orbit}_TO_SURFACE"]
-    m_final_ascent = dry_mass
-    m_init_ascent = m_final_ascent * math.exp(dv_ascent / (isp * G))
-    mission_log.append({"LEG": "ASCENT: SURFACE TO ORBIT", "DV (m/s)": dv_ascent, "WET MASS": f"{m_init_ascent:.1f}t", "DRY MASS": f"{m_final_ascent:.1f}t", "VEHICLE": "HLS"})
+    # 2. Descent
+    dvd = dva
+    mdf = mai
+    mdi = mdf * math.exp(dvd / (isp * G))
+    log.append({"LEG": "DESCENT: ORBIT TO SURFACE", "DV": dvd, "WET MASS": f"{mdi:.1f}t", "DRY MASS": f"{mdf:.1f}t", "VEHICLE": "HLS"})
 
-    # 2. Descent (Ends at m_init_ascent)
-    dv_descent = dv_ascent
-    m_final_descent = m_init_ascent
-    m_init_descent = m_final_descent * math.exp(dv_descent / (isp * G))
-    mission_log.append({"LEG": "DESCENT: ORBIT TO SURFACE", "DV (m/s)": dv_descent, "WET MASS": f"{m_init_descent:.1f}t", "DRY MASS": f"{m_final_descent:.1f}t", "VEHICLE": "HLS"})
-
-    current_m = m_init_descent
-
-    # 3. Intermediate Orion Push
-    if "MODE 3" in mode or "MODE 4" in mode:
-        dv_push = 450 if "NRHO TO LLO" in mode else 400 if "PCO TO LLO" in mode else 350
-        m_final_push = current_m + ORION_M
-        m_init_push = m_final_push * math.exp(dv_push / (isp * G))
-        mission_log.append({"LEG": "ORION PUSH (MANEUVER)", "DV (m/s)": dv_push, "WET MASS": f"{m_init_push:.1f}t", "DRY MASS": f"{m_final_push:.1f}t", "VEHICLE": "HLS + 27t ORION"})
-        current_m = m_init_push - ORION_M
+    curr = mdi
+    
+    # 3. Intermediate Pushes
+    if "MODE 3" in m or "MODE 4" in m:
+        dvp = 450 if "NRHO TO LLO" in m else 400 if "PCO TO LLO" in m else 350
+        mpf = curr + OM
+        mpi = mpf * math.exp(dvp / (isp * G))
+        log.append({"LEG": "ORION PUSH MANEUVER", "DV": dvp, "WET MASS": f"{mpi:.1f}t", "DRY MASS": f"{mpf:.1f}t", "VEHICLE": "HLS + 27t ORION"})
+        curr = mpi - OM
 
     # 4. TLI Arrival
-    dv_tli_arr = DV[f"TLI_TO_{orbit}"]
-    has_orion_tli = "MODE 2" in mode
-    m_final_tli_arr = current_m + (ORION_M if has_orion_tli else 0)
-    m_init_tli_arr = m_final_tli_arr * math.exp(dv_tli_arr / (isp * G))
-    mission_log.append({"LEG": f"ARRIVAL AT {orbit}", "DV (m/s)": dv_tli_arr, "WET MASS": f"{m_init_tli_arr:.1f}t", "DRY MASS": f"{m_final_tli_arr:.1f}t", "VEHICLE": f"HLS {'+ 27t ORION' if has_orion_tli else ''}"})
+    dva2 = DV[f"TLI_TO_{orbit}"]
+    has_o = "MODE 2" in m
+    ma2f = curr + (OM if has_o else 0)
+    ma2i = ma2f * math.exp(dva2 / (isp * G))
+    log.append({"LEG": f"ARRIVAL AT {orbit}", "DV": dva2, "WET MASS": f"{ma2i:.1f}t", "DRY MASS": f"{ma2f:.1f}t", "VEHICLE": f"HLS {'+ 27t ORION' if has_o else ''}"})
 
     # 5. TLI Departure
-    dv_tli_dep = 3200
-    m_final_tli_dep = m_init_tli_arr
-    m_init_tli_dep = m_final_tli_dep * math.exp(dv_tli_dep / (isp * G))
-    mission_log.append({"LEG": "TLI DEPARTURE (LEO)", "DV (m/s)": dv_tli_dep, "WET MASS": f"{m_init_tli_dep:.1f}t", "DRY MASS": f"{m_final_tli_dep:.1f}t", "VEHICLE": f"HLS {'+ 27t ORION' if has_orion_tli else ''}"})
+    dv_leo = 3200
+    m_leo_f = ma2i
+    m_leo_i = m_leo_f * math.exp(dv_leo / (isp * G))
+    log.append({"LEG": "TLI DEPARTURE (LEO)", "DV": dv_leo, "WET MASS": f"{m_leo_i:.1f}t", "DRY MASS": f"{m_leo_f:.1f}t", "VEHICLE": f"HLS {'+ 27t ORION' if has_o else ''}"})
 
-    # Propellant is Wet Mass at start minus final dry HLS and any Orion mass left at TLI arrival
-    total_prop = m_init_tli_dep - dry_mass - (ORION_M if has_orion_tli else 0)
-    if "MODE 3" in mode or "MODE 4" in mode:
-        total_prop = m_init_tli_dep - dry_mass
+    prop = m_leo_i - dry_m - (OM if has_o else 0)
+    if "MODE 3" in m or "MODE 4" in m: prop = m_leo_i - dry_m
 
-    return total_prop, mission_log
+    return prop, log
 
-total_prop, mission_log = run_telemetry()
-num_tankers = math.ceil(total_prop / refill_amount)
+total_p, t_log = get_telemetry()
+tanks = math.ceil(total_p / ref_amt)
 
-# --- RESULTS SECTION ---
-st.markdown("---")
+# --- RESULTS ---
+st.markdown("<hr>", unsafe_allow_html=True)
 r1, r2, r3 = st.columns(3)
-with r1: st.metric("TANKERS", num_tankers)
-with r2: st.metric("TOTAL PROPELLANT", f"{total_prop:,.1f} T")
-with r3: st.metric("MISSION DURATION", f"{num_tankers * cadence} DAYS")
+with r1: st.metric("TANKERS", tanks)
+with r2: st.metric("TOTAL PROPELLANT", f"{total_p:,.1f} T")
+with r3: st.metric("REFILL CAMPAIGN LENGTH", f"{tanks * cadence} DAYS")
 
-# Tanker Visualization
-tanker_icons = "".join([f"<div style='display:inline-block; margin-right:5px;'>{TANKER_SVG}</div>" for _ in range(num_tankers)])
-st.markdown(f"<div class='tanker-container'>{tanker_icons}</div>", unsafe_allow_html=True)
+t_icons = "".join([f"<div style='display:inline-block; margin-right:4px;'>{TANKER_SVG}</div>" for _ in range(tanks)])
+st.markdown(f"<div class='tanker-container'>{t_icons}</div>", unsafe_allow_html=True)
 
-# --- DETAILED READOUT (EXPANDER) ---
-st.markdown("---")
-with st.expander("▶ VIEW DETAILED TELEMETRY LOG (BACKWARD INTEGRATION)"):
-    df = pd.DataFrame(mission_log)
-    # Reverse to show backward flow logic or leave as is? Let's leave as is to show "End-to-Start" path.
-    st.table(df)
-    st.info("NOTE: TELEMETRY IS CALCULATED BACKWARD FROM LUNAR ASCENT TO LEO DEPARTURE.")
+st.markdown("<br>", unsafe_allow_html=True)
+with st.expander("▶ VIEW DETAILED TELEMETRY LOG"):
+    st.table(pd.DataFrame(t_log))
