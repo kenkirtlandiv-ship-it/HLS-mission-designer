@@ -5,74 +5,91 @@ import pandas as pd
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="HLS Logistics Terminal", layout="wide")
 
-# --- HARDENED TERMINAL CSS ---
+# --- ULTIMATE DARK MODE CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
-    /* Remove top void and header lines */
-    .block-container { padding-top: 1rem !important; padding-bottom: 0rem !important; }
-    header { visibility: hidden; }
-    footer { visibility: hidden; }
-
+    /* 1. REMOVE TOP LINES AND VOID */
+    [data-testid="stHeader"] {display: none;}
+    [data-testid="stDecoration"] {display: none;}
+    .block-container { padding-top: 0rem !important; padding-bottom: 0rem !important; }
+    
+    /* 2. GLOBAL THEME */
     .stApp {
         background-color: #000000;
         color: #98FF98;
         font-family: 'JetBrains Mono', monospace;
     }
 
-    /* All text elements */
+    /* 3. ALIGNMENT & TEXT */
     h1, h2, h3, p, span, label, div {
         color: #98FF98 !important;
         text-transform: uppercase;
     }
-
-    /* Input Block Alignment */
     .input-block {
         min-height: 400px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
         border-top: 1px solid #98FF98;
-        padding-top: 15px;
+        padding-top: 10px;
+        margin-top: 0px;
     }
 
-    /* DARK SELECTBOX (Staging Orbit) */
-    div[data-baseweb="select"] > div {
-        background-color: #222 !important;
-        border: 1px solid #98FF98 !important;
+    /* 4. FORCE DARK SELECTBOX POPUP (THE MENU) */
+    div[data-baseweb="popover"], div[data-baseweb="listbox"] {
+        background-color: #1a1a1a !important;
+    }
+    div[data-baseweb="popover"] li {
+        background-color: #1a1a1a !important;
         color: #98FF98 !important;
     }
-    div[data-testid="stSelectbox"] label { margin-bottom: 5px; }
+    div[data-baseweb="popover"] li:hover {
+        background-color: #333 !important;
+    }
+    /* The closed box itself */
+    div[data-baseweb="select"] > div {
+        background-color: #1a1a1a !important;
+        border: 1px solid #98FF98 !important;
+    }
 
-    /* DARK EXPANDER (Details) */
+    /* 5. FORCE DARK EXPANDER */
     div[data-testid="stExpander"] {
         background-color: #000000 !important;
         border: 1px solid #98FF98 !important;
         border-radius: 0px;
     }
-    div[data-testid="stExpander"] > div { background-color: #000000 !important; }
+    div[data-testid="stExpanderDetails"] {
+        background-color: #000000 !important;
+    }
+    [data-testid="stExpander"] svg { fill: #98FF98 !important; }
 
-    /* Table Styling */
-    .stTable { background-color: #000 !important; border: 1px solid #98FF98; }
+    /* 6. TABLE STYLING */
+    .stTable, table { 
+        background-color: #000 !important; 
+        border: 1px solid #98FF98 !important; 
+        color: #98FF98 !important;
+    }
+    th, td { border: 1px solid #333 !important; color: #98FF98 !important; }
 
-    /* Sliders & Metrics */
+    /* 7. WIDGETS */
     .stSlider [data-baseweb="slider"] { background-color: transparent; }
     [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 38px !important; }
 
-    /* Button Logic */
     .stButton > button {
         width: 100%;
         border: 1px solid #98FF98 !important;
-        background-color: #1a1a1a !important;
+        background-color: #111 !important;
         color: #98FF98 !important;
         border-radius: 0px;
         height: 45px;
         font-size: 10px !important;
         margin-bottom: 4px;
     }
-
-    .tanker-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+    
+    .tanker-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+    hr { border: 0; border-top: 1px solid #333; margin: 10px 0; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -85,8 +102,8 @@ ORION_SVG = """<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http:/
 if 'selected_mode' not in st.session_state:
     st.session_state.selected_mode = "MODE 1: NO PUSH"
 
-# --- UI CONTENT ---
-st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 20px;'>HLS MISSION LOGISTICS</h2>", unsafe_allow_html=True)
+# --- CONTENT ---
+st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-top: 0px; margin-bottom: 10px;'>HLS MISSION LOGISTICS</h2>", unsafe_allow_html=True)
 
 c1, c2, c3 = st.columns(3)
 
@@ -126,7 +143,7 @@ with c3:
             st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- MATH ---
+# --- ENGINE ---
 G = 9.80665
 OM = 27.0
 DV = {
@@ -138,6 +155,7 @@ def get_telemetry():
     m = st.session_state.selected_mode
     log = []
     
+    # Backward Integration
     # 1. Ascent
     dva = DV[f"{orbit}_TO_SURFACE"]
     maf = dry_m
@@ -151,8 +169,6 @@ def get_telemetry():
     log.append({"LEG": "DESCENT: ORBIT TO SURFACE", "DV": dvd, "WET MASS": f"{mdi:.1f}t", "DRY MASS": f"{mdf:.1f}t", "VEHICLE": "HLS"})
 
     curr = mdi
-    
-    # 3. Intermediate Pushes
     if "MODE 3" in m or "MODE 4" in m:
         dvp = 450 if "NRHO TO LLO" in m else 400 if "PCO TO LLO" in m else 350
         mpf = curr + OM
@@ -160,14 +176,12 @@ def get_telemetry():
         log.append({"LEG": "ORION PUSH MANEUVER", "DV": dvp, "WET MASS": f"{mpi:.1f}t", "DRY MASS": f"{mpf:.1f}t", "VEHICLE": "HLS + 27t ORION"})
         curr = mpi - OM
 
-    # 4. TLI Arrival
     dva2 = DV[f"TLI_TO_{orbit}"]
     has_o = "MODE 2" in m
     ma2f = curr + (OM if has_o else 0)
     ma2i = ma2f * math.exp(dva2 / (isp * G))
     log.append({"LEG": f"ARRIVAL AT {orbit}", "DV": dva2, "WET MASS": f"{ma2i:.1f}t", "DRY MASS": f"{ma2f:.1f}t", "VEHICLE": f"HLS {'+ 27t ORION' if has_o else ''}"})
 
-    # 5. TLI Departure
     dv_leo = 3200
     m_leo_f = ma2i
     m_leo_i = m_leo_f * math.exp(dv_leo / (isp * G))
@@ -175,7 +189,6 @@ def get_telemetry():
 
     prop = m_leo_i - dry_m - (OM if has_o else 0)
     if "MODE 3" in m or "MODE 4" in m: prop = m_leo_i - dry_m
-
     return prop, log
 
 total_p, t_log = get_telemetry()
