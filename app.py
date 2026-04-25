@@ -15,7 +15,7 @@ def get_b64(file):
 
 t_64 = get_b64("tanker.svg")
 
-# --- TACTICAL TERMINAL CSS ---
+# --- THE STABILIZED TACTICAL CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
@@ -28,19 +28,21 @@ st.markdown("""
     .stApp { background-color: #000000 !important; color: #98FF98 !important; font-family: 'JetBrains Mono', monospace; }
     h1, h2, h3, p, span, label, div { color: #98FF98 !important; text-transform: uppercase; }
 
-    /* 3. UNIFIED TACTICAL BOXES */
+    /* 3. UNIFIED BOXES (HARD SYMMETRY) */
     [data-testid="stVerticalBlockBorderWrapper"] {
         border: 1px solid #98FF98 !important;
         background-color: #050505 !important;
         padding: 20px !important;
-        min-height: 620px !important; /* Unified height lock */
+        min-height: 520px !important; /* Fixed uniform height for all boxes */
+        max-height: 520px !important;
+        overflow: hidden !important;
         display: flex;
         flex-direction: column;
     }
 
-    /* 4. SHIP ICON EQUALIZER */
+    /* 4. SHIP ICON EQUALIZER (All Ships Same Scale) */
     [data-testid="stImage"] img {
-        height: 200px !important;
+        height: 180px !important; /* Unified ship size */
         width: auto !important;
         object-fit: contain;
         margin: 0 auto !important;
@@ -48,24 +50,24 @@ st.markdown("""
     }
 
     /* 5. TACTICAL SELECTION LIST (ORION) */
-    /* Selected Option: Bright Mint */
-    .selected-opt { color: #98FF98 !important; font-weight: bold; font-size: 14px; margin-bottom: 10px; cursor: pointer; }
-    /* Unselected Option: Dim Mint */
-    .dim-opt { color: #1e3d1e !important; font-size: 14px; margin-bottom: 10px; cursor: pointer; }
+    .selected-opt { color: #98FF98 !important; font-weight: bold; font-size: 13px; margin-bottom: 5px; }
+    .dim-opt { color: #1e3d1e !important; font-size: 13px; margin-bottom: 5px; }
     
-    /* Transparent Button Overlays */
+    /* Transparent Selection Buttons */
     .stButton > button {
         background-color: transparent !important;
         border: none !important;
         color: inherit !important;
         text-align: left !important;
-        padding: 0 !important;
+        padding: 2px 0 !important;
         font-family: 'JetBrains Mono', monospace !important;
         text-transform: uppercase !important;
+        font-size: 13px !important;
+        width: 100% !important;
     }
-    .stButton > button:hover { color: #98FF98 !important; }
+    .stButton > button:hover { color: #98FF98 !important; background-color: rgba(152, 255, 152, 0.05) !important; }
 
-    /* 6. UI HARDENING (Dark Menus & Tables) */
+    /* 6. UI HARDENING */
     div[data-baseweb="select"] > div { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
     div[role="listbox"], div[data-baseweb="popover"], ul { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
     
@@ -99,7 +101,7 @@ col1, col2, col3 = st.columns(3)
 # PANEL 1: TANKER
 with col1:
     with st.container(border=True):
-        st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px; margin-bottom:15px;'>STARSHIP REFILL TANKER</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px;'>STARSHIP REFILL TANKER</p>", unsafe_allow_html=True)
         st.image("tanker.svg")
         ref_amt = st.slider("PROP PER REFILL (T)", 50, 200, 100, step=5)
         cadence = st.slider("CADENCE (DAYS)", 1, 31, 7)
@@ -108,28 +110,26 @@ with col1:
 # PANEL 2: HLS
 with col2:
     with st.container(border=True):
-        st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px; margin-bottom:15px;'>HLS STARSHIP</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px;'>HLS STARSHIP</p>", unsafe_allow_html=True)
         st.image("hls.svg")
-        dry_m = st.slider("HLS DRY MASS (T)", 80, 250, 130, step=5)
+        dry_m = st.slider("HLS DRY MASS (T)", 80, 250, 120, step=5)
         isp = st.slider("ENGINE ISP (S)", 350, 380, 365)
         orbit = st.selectbox("STAGING ORBIT", ["NRHO", "LLO", "PCO"])
 
 # PANEL 3: ORION
 with col3:
     with st.container(border=True):
-        st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px; margin-bottom:15px;'>ORION MODE</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px;'>ORION MODE</p>", unsafe_allow_html=True)
         st.image("orion.svg")
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # 1. Define Master List
-        # 2. Filter based on Staging Orbit
+        # Orbital Logic Gate
         available_modes = ["NO HLS PUSH", "HLS PUSH FROM LEO TO STAGING ORBIT"]
         if orbit == "LLO":
             available_modes += ["HLS PUSH FROM NRHO TO LLO", "HLS PUSH FROM PCO TO LLO"]
         elif orbit == "PCO":
             available_modes += ["HLS PUSH FROM NRHO TO PCO"]
             
-        # Fallback if current mode is filtered out
         if st.session_state.orion_mode not in available_modes:
             st.session_state.orion_mode = "NO HLS PUSH"
 
@@ -138,7 +138,6 @@ with col3:
             label_text = f"▶ {m}" if is_active else f"  {m}"
             css_class = "selected-opt" if is_active else "dim-opt"
             
-            # Using Markdown to wrap a transparent button for a "List Selection" feel
             st.markdown(f"<div class='{css_class}'>", unsafe_allow_html=True)
             st.button(label_text, key=f"mode_{m}", on_click=set_mode, args=(m,))
             st.markdown("</div>", unsafe_allow_html=True)
@@ -154,7 +153,6 @@ def get_log():
     dvd = dva; mdf = mai; mdi = mdf * math.exp(dvd / (isp * G))
     log.append({"LEG": "DESCENT: ORBIT TO SURFACE", "DV": dvd, "WET MASS": f"{mdi:.1f}T", "DRY MASS": f"{mdf:.1f}T", "VEHICLE": "HLS"})
     curr = mdi
-    
     if "NRHO TO LLO" in m:
         dvp = 450; mpf = curr + OM; mpi = mpf * math.exp(dvp / (isp * G))
         log.append({"LEG": "ORION PUSH (NRHO->LLO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
@@ -164,13 +162,11 @@ def get_log():
     elif "PCO TO LLO" in m:
         dvp = 400; mpf = curr + OM; mpi = mpf * math.exp(dvp / (isp * G))
         log.append({"LEG": "ORION PUSH (PCO->LLO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
-
     dva2 = DV[f"TLI_TO_{orbit}"]; has_o = "LEO TO STAGING" in m
     ma2f = curr + (OM if has_o else 0); ma2i = ma2f * math.exp(dva2 / (isp * G))
     log.append({"LEG": f"ARRIVAL AT {orbit}", "DV": dva2, "WET MASS": f"{ma2i:.1f}T", "DRY MASS": f"{ma2f:.1f}T", "VEHICLE": f"HLS {'+ 27T ORION' if has_o else ''}"})
     dvl = 3200; mlf = ma2i; mli = mlf * math.exp(dvl / (isp * G))
     log.append({"LEG": "TLI DEPARTURE (LEO)", "DV": dvl, "WET MASS": f"{mli:.1f}T", "DRY MASS": f"{mlf:.1f}T", "VEHICLE": f"HLS {'+ 27T ORION' if has_o else ''}"})
-    
     prop = mli - dry_m - (OM if has_o else 0)
     if any(x in m for x in ["NRHO TO", "PCO TO"]): prop = mli - dry_m
     return prop, log
@@ -186,7 +182,6 @@ with r2:
     s_c = "warning-red" if total_p > CAP else ""
     st.markdown(f"TOTAL PROPELLANT")
     st.markdown(f"<p class='{s_c}' style='font-size:32px; margin:0;'>{total_p:,.1f} T / {CAP:,.0f} T</p>", unsafe_allow_html=True)
-    if total_p > CAP: st.markdown(f"<p class='warning-red' style='font-size:10px;'>MISSION WOULD REQUIRE ADDITIONAL REFILLS IN HIGHER ORBIT, OR AT THE MOON</p>", unsafe_allow_html=True)
 with r3: st.metric("REFILL CAMPAIGN LENGTH", f"{tanks * cadence} DAYS")
 with r4: st.metric("REFILL CAMPAIGN COST", f"${cost/1000:.2f} B" if cost >= 1000 else f"${cost:,.0f} M")
 
