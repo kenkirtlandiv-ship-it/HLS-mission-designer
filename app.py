@@ -15,31 +15,31 @@ def get_b64(file):
 
 t_64 = get_b64("tanker.svg")
 
-# --- THE DEFINITIVE TACTICAL CSS ---
+# --- TACTICAL TERMINAL CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
     /* 1. TOP GAP REMOVAL */
     [data-testid="stHeader"], [data-testid="stDecoration"], footer { display: none !important; }
-    .main .block-container { padding-top: 0rem !important; margin-top: -50px !important; }
+    .main .block-container { padding-top: 1rem !important; margin-top: -60px !important; }
 
     /* 2. GLOBAL THEME */
     .stApp { background-color: #000000 !important; color: #98FF98 !important; font-family: 'JetBrains Mono', monospace; }
     h1, h2, h3, p, span, label, div { color: #98FF98 !important; text-transform: uppercase; }
 
-    /* 3. UNIFIED MINT BOXES (Forced Symmetry) */
+    /* 3. UNIFIED TACTICAL BOXES */
     [data-testid="stVerticalBlockBorderWrapper"] {
         border: 1px solid #98FF98 !important;
         background-color: #050505 !important;
         padding: 20px !important;
-        min-height: 600px !important; /* Forces all 3 boxes to be the same size */
+        min-height: 620px !important; /* Unified height lock */
         display: flex;
         flex-direction: column;
     }
 
-    /* 4. SHIP ICON EQUALIZER (Height Lock) */
-    div[data-testid="stImage"] img {
+    /* 4. SHIP ICON EQUALIZER */
+    [data-testid="stImage"] img {
         height: 200px !important;
         width: auto !important;
         object-fit: contain;
@@ -47,27 +47,23 @@ st.markdown("""
         display: block;
     }
 
-    /* 5. THE BUTTON COLOR ENGINE */
-    /* DEFAULT: Grey Fill, Mint Outline, Mint Text */
+    /* 5. TACTICAL SELECTION LIST (ORION) */
+    /* Selected Option: Bright Mint */
+    .selected-opt { color: #98FF98 !important; font-weight: bold; font-size: 14px; margin-bottom: 10px; cursor: pointer; }
+    /* Unselected Option: Dim Mint */
+    .dim-opt { color: #1e3d1e !important; font-size: 14px; margin-bottom: 10px; cursor: pointer; }
+    
+    /* Transparent Button Overlays */
     .stButton > button {
-        width: 100% !important;
-        border: 1px solid #98FF98 !important;
-        background-color: #1a1a1a !important;
-        color: #98FF98 !important;
-        border-radius: 0px !important;
-        height: 42px !important;
-        font-size: 8.5px !important;
-        margin-bottom: 5px !important;
-        text-transform: uppercase;
+        background-color: transparent !important;
+        border: none !important;
+        color: inherit !important;
+        text-align: left !important;
+        padding: 0 !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        text-transform: uppercase !important;
     }
-
-    /* SELECTED: Mint Fill, Black Text (Triggered by Invisible Character) */
-    /* \\u200b is the Zero-Width Space */
-    button[aria-label^="​"] {
-        background-color: #98FF98 !important;
-        color: #000000 !important;
-        font-weight: bold !important;
-    }
+    .stButton > button:hover { color: #98FF98 !important; }
 
     /* 6. UI HARDENING (Dark Menus & Tables) */
     div[data-baseweb="select"] > div { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
@@ -123,21 +119,29 @@ with col3:
     with st.container(border=True):
         st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px; margin-bottom:15px;'>ORION MODE</p>", unsafe_allow_html=True)
         st.image("orion.svg")
+        st.markdown("<br>", unsafe_allow_html=True)
         
-        modes = [
-            "NO HLS PUSH",
-            "HLS PUSH FROM LEO TO STAGING ORBIT",
-            "HLS PUSH FROM NRHO TO LLO",
-            "HLS PUSH FROM NRHO TO PCO",
-            "HLS PUSH FROM PCO TO LLO"
-        ]
-        
-        for m in modes:
-            # Invisible Zero-Width Space added to the label of the active mode
-            is_active = st.session_state.orion_mode == m
-            label = f"\u200b{m}" if is_active else m
+        # 1. Define Master List
+        # 2. Filter based on Staging Orbit
+        available_modes = ["NO HLS PUSH", "HLS PUSH FROM LEO TO STAGING ORBIT"]
+        if orbit == "LLO":
+            available_modes += ["HLS PUSH FROM NRHO TO LLO", "HLS PUSH FROM PCO TO LLO"]
+        elif orbit == "PCO":
+            available_modes += ["HLS PUSH FROM NRHO TO PCO"]
             
-            st.button(label, key=f"btn_{m}", on_click=set_mode, args=(m,))
+        # Fallback if current mode is filtered out
+        if st.session_state.orion_mode not in available_modes:
+            st.session_state.orion_mode = "NO HLS PUSH"
+
+        for m in available_modes:
+            is_active = st.session_state.orion_mode == m
+            label_text = f"▶ {m}" if is_active else f"  {m}"
+            css_class = "selected-opt" if is_active else "dim-opt"
+            
+            # Using Markdown to wrap a transparent button for a "List Selection" feel
+            st.markdown(f"<div class='{css_class}'>", unsafe_allow_html=True)
+            st.button(label_text, key=f"mode_{m}", on_click=set_mode, args=(m,))
+            st.markdown("</div>", unsafe_allow_html=True)
 
 # --- MISSION MATH ---
 G = 9.80665; OM = 27.0; CAP = 1500.0
@@ -150,6 +154,7 @@ def get_log():
     dvd = dva; mdf = mai; mdi = mdf * math.exp(dvd / (isp * G))
     log.append({"LEG": "DESCENT: ORBIT TO SURFACE", "DV": dvd, "WET MASS": f"{mdi:.1f}T", "DRY MASS": f"{mdf:.1f}T", "VEHICLE": "HLS"})
     curr = mdi
+    
     if "NRHO TO LLO" in m:
         dvp = 450; mpf = curr + OM; mpi = mpf * math.exp(dvp / (isp * G))
         log.append({"LEG": "ORION PUSH (NRHO->LLO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
@@ -159,11 +164,13 @@ def get_log():
     elif "PCO TO LLO" in m:
         dvp = 400; mpf = curr + OM; mpi = mpf * math.exp(dvp / (isp * G))
         log.append({"LEG": "ORION PUSH (PCO->LLO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
+
     dva2 = DV[f"TLI_TO_{orbit}"]; has_o = "LEO TO STAGING" in m
     ma2f = curr + (OM if has_o else 0); ma2i = ma2f * math.exp(dva2 / (isp * G))
     log.append({"LEG": f"ARRIVAL AT {orbit}", "DV": dva2, "WET MASS": f"{ma2i:.1f}T", "DRY MASS": f"{ma2f:.1f}T", "VEHICLE": f"HLS {'+ 27T ORION' if has_o else ''}"})
     dvl = 3200; mlf = ma2i; mli = mlf * math.exp(dvl / (isp * G))
     log.append({"LEG": "TLI DEPARTURE (LEO)", "DV": dvl, "WET MASS": f"{mli:.1f}T", "DRY MASS": f"{mlf:.1f}T", "VEHICLE": f"HLS {'+ 27T ORION' if has_o else ''}"})
+    
     prop = mli - dry_m - (OM if has_o else 0)
     if any(x in m for x in ["NRHO TO", "PCO TO"]): prop = mli - dry_m
     return prop, log
@@ -189,7 +196,7 @@ if t_64:
     fleet_html = "".join([f"<img src='data:image/svg+xml;base64,{t_64}' style='height:60px; margin:5px;'>" for _ in range(tanks)])
     st.markdown(f"<div class='fleet-grid'>{fleet_html}</div>", unsafe_allow_html=True)
 
-# --- MISSION READOUT ---
+# --- DETAILED MISSION READOUT ---
 st.markdown("---")
 st.markdown("### DETAILED MISSION READOUT")
 st.table(pd.DataFrame(t_log))
