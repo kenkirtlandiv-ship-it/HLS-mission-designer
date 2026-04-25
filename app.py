@@ -1,45 +1,55 @@
 import streamlit as st
 import math
 import pandas as pd
+import base64
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="HLS Mission Console", layout="wide")
 
-# --- THE "HARDENED" TACTICAL CSS ---
+# --- UTILITY: ICON ENCODER ---
+def get_b64(file):
+    try:
+        with open(file, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except: return ""
+
+t_64 = get_b64("tanker.svg")
+
+# --- THE TACTICAL CSS OVERRIDE ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
-    /* 1. KILL HEADER & TOP GAP */
+    /* 1. TOP GAP & HEADER REMOVAL */
     [data-testid="stHeader"], [data-testid="stDecoration"], footer { display: none !important; }
-    .main .block-container { padding-top: 1rem !important; margin-top: -60px !important; }
+    .main .block-container { padding-top: 0rem !important; margin-top: -60px !important; }
 
     /* 2. GLOBAL THEME */
     .stApp { background-color: #000000 !important; color: #98FF98 !important; font-family: 'JetBrains Mono', monospace; }
     h1, h2, h3, p, span, label, div { color: #98FF98 !important; text-transform: uppercase; }
 
-    /* 3. TACTICAL BOXES (Targeting the Columns) */
+    /* 3. TACTICAL BOXES (Targeting Streamlit Columns directly) */
     [data-testid="column"] {
         border: 1px solid #98FF98 !important;
-        padding: 25px 15px 15px 15px !important;
+        padding: 30px 20px 20px 20px !important;
         background-color: #050505 !important;
-        min-height: 520px !important;
-        position: relative;
+        min-height: 560px !important;
+        margin-right: 15px !important; /* Spacing between distinct sections */
     }
 
-    /* INSET TITLES - Logic to add titles via CSS to avoid empty boxes */
-    [data-testid="stHorizontalBlock"] > div:nth-child(1) [data-testid="column"]::before { content: "STARSHIP REFILL TANKER"; position: absolute; top: -10px; left: 15px; background: #000; padding: 0 10px; font-size: 12px; color: #98FF98; z-index: 10; font-weight: bold; }
-    [data-testid="stHorizontalBlock"] > div:nth-child(2) [data-testid="column"]::before { content: "HLS STARSHIP"; position: absolute; top: -10px; left: 15px; background: #000; padding: 0 10px; font-size: 12px; color: #98FF98; z-index: 10; font-weight: bold; }
-    [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="column"]::before { content: "ORION MODE"; position: absolute; top: -10px; left: 15px; background: #000; padding: 0 10px; font-size: 12px; color: #98FF98; z-index: 10; font-weight: bold; }
+    /* INSET TITLES VIA CSS PSEUDO-ELEMENTS */
+    [data-testid="stHorizontalBlock"] > div:nth-child(1) [data-testid="column"]::before { content: "STARSHIP REFILL TANKER"; position: absolute; top: -10px; left: 15px; background: #000; padding: 0 10px; font-size: 13px; font-weight: bold; }
+    [data-testid="stHorizontalBlock"] > div:nth-child(2) [data-testid="column"]::before { content: "HLS STARSHIP"; position: absolute; top: -10px; left: 15px; background: #000; padding: 0 10px; font-size: 13px; font-weight: bold; }
+    [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="column"]::before { content: "ORION MODE"; position: absolute; top: -10px; left: 15px; background: #000; padding: 0 10px; font-size: 13px; font-weight: bold; }
 
     /* 4. SHIP ICON EQUALIZER */
     [data-testid="stImage"] img {
-        height: 220px !important;
+        height: 240px !important;
         width: auto !important;
         object-fit: contain;
     }
 
-    /* 5. BUTTONS (Active = Mint Green, Inactive = Dark) */
+    /* 5. BUTTONS (Active = Green Fill, Inactive = Dark Grey) */
     .stButton > button {
         width: 100% !important;
         border: 1px solid #98FF98 !important;
@@ -56,10 +66,13 @@ st.markdown("""
     div[role="listbox"], div[data-baseweb="popover"], ul { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
     
     table { background-color: #000 !important; border: 1px solid #98FF98 !important; width: 100%; margin-top: 15px; }
-    th { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
+    th { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; text-align: left !important; }
     td { border: 1px solid #333 !important; color: #98FF98 !important; padding: 10px !important; }
 
-    /* 7. METRICS & WARNINGS */
+    /* 7. TANKER FLEET FLEXBOX */
+    .fleet-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; padding: 10px; border: 1px solid #333; }
+
+    /* 8. METRICS & SLIDERS */
     [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 32px !important; }
     .warning-red { color: #FF3131 !important; font-weight: bold; }
     .stSlider [data-baseweb="slider"] { background-color: transparent !important; }
@@ -81,6 +94,7 @@ col1, col2, col3 = st.columns(3)
 
 # PANEL 1: TANKER
 with col1:
+    # Nested columns for sidebar icon + sliders
     c1a, c1b = st.columns([1, 2])
     with c1a:
         st.image("tanker.svg")
@@ -115,10 +129,11 @@ with col3:
         for m in modes:
             active = st.session_state.orion_mode == m
             if active:
+                # High-specificity CSS to flip the button to Green-Fill / Black-Text
                 st.markdown(f"<style>div.stButton > button:first-child:contains('{m}') {{ background-color: #98FF98 !important; color: black !important; font-weight: bold; }}</style>", unsafe_allow_html=True)
             st.button(m, key=f"btn_{m}", on_click=set_mode, args=(m,))
 
-# --- MISSION MATH ---
+# --- MISSION MATH (BACKWARD INTEGRATION) ---
 G = 9.80665; OM = 27.0; CAP = 1500.0
 DV = {"LEO_TO_TLI": 3200, "TLI_TO_NRHO": 450, "TLI_TO_LLO": 900, "TLI_TO_PCO": 800, "NRHO_TO_SURFACE": 2750, "LLO_TO_SURFACE": 2000, "PCO_TO_SURFACE": 2400}
 
@@ -162,16 +177,15 @@ with r2:
 with r3: st.metric("REFILL CAMPAIGN LENGTH", f"{tanks * cadence} DAYS")
 with r4: st.metric("REFILL CAMPAIGN COST", f"${cost/1000:.2f} B" if cost >= 1000 else f"${cost:,.0f} M")
 
-# TANKER FLEET DISPLAY
+# --- TANKER FLEET DISPLAY (ROBUST HTML) ---
 st.markdown("### TANKER FLEET")
-for r in range(math.ceil(tanks / 15)):
-    fleet_cols = st.columns(15)
-    for c in range(15):
-        idx = r * 15 + c
-        if idx < tanks:
-            with fleet_cols[c]: st.image("tanker.svg", use_container_width=True)
+if t_64:
+    fleet_html = "".join([f"<img src='data:image/svg+xml;base64,{t_64}' style='height:60px; margin:5px;'>" for _ in range(tanks)])
+    st.markdown(f"<div class='fleet-grid'>{fleet_html}</div>", unsafe_allow_html=True)
+else:
+    st.error("ASSETS NOT LOADED")
 
-# DETAILED READOUT
+# --- MISSION READOUT ---
 st.markdown("---")
 st.markdown("### DETAILED MISSION READOUT")
 st.table(pd.DataFrame(t_log))
