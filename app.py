@@ -15,50 +15,47 @@ def get_b64(file):
 
 t_64 = get_b64("tanker.svg")
 
-# --- THE TACTICAL CSS OVERRIDE ---
+# --- THE "MINT OUTLINE" CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
-    /* 1. TOP GAP & HEADER REMOVAL */
+    /* 1. TOP GAP REMOVAL */
     [data-testid="stHeader"], [data-testid="stDecoration"], footer { display: none !important; }
-    .main .block-container { padding-top: 0rem !important; margin-top: -60px !important; }
+    .main .block-container { padding-top: 0rem !important; margin-top: -50px !important; }
 
     /* 2. GLOBAL THEME */
     .stApp { background-color: #000000 !important; color: #98FF98 !important; font-family: 'JetBrains Mono', monospace; }
     h1, h2, h3, p, span, label, div { color: #98FF98 !important; text-transform: uppercase; }
 
-    /* 3. TACTICAL BOXES (Targeting Streamlit Columns directly) */
-    [data-testid="column"] {
+    /* 3. MINT GREEN BORDERED CONTAINERS */
+    /* This targets Streamlit's native 'border=True' containers */
+    [data-testid="stVerticalBlockBorderWrapper"] {
         border: 1px solid #98FF98 !important;
-        padding: 30px 20px 20px 20px !important;
         background-color: #050505 !important;
-        min-height: 560px !important;
-        margin-right: 15px !important; /* Spacing between distinct sections */
+        padding: 20px !important;
+        margin-bottom: 20px !important;
     }
 
-    /* INSET TITLES VIA CSS PSEUDO-ELEMENTS */
-    [data-testid="stHorizontalBlock"] > div:nth-child(1) [data-testid="column"]::before { content: "STARSHIP REFILL TANKER"; position: absolute; top: -10px; left: 15px; background: #000; padding: 0 10px; font-size: 13px; font-weight: bold; }
-    [data-testid="stHorizontalBlock"] > div:nth-child(2) [data-testid="column"]::before { content: "HLS STARSHIP"; position: absolute; top: -10px; left: 15px; background: #000; padding: 0 10px; font-size: 13px; font-weight: bold; }
-    [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="column"]::before { content: "ORION MODE"; position: absolute; top: -10px; left: 15px; background: #000; padding: 0 10px; font-size: 13px; font-weight: bold; }
-
-    /* 4. SHIP ICON EQUALIZER */
+    /* 4. SHIP ICON EQUALIZER (HEIGHT BASED) */
     [data-testid="stImage"] img {
-        height: 240px !important;
+        height: 250px !important;
         width: auto !important;
         object-fit: contain;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
     }
 
-    /* 5. BUTTONS (Active = Green Fill, Inactive = Dark Grey) */
+    /* 5. ORION BUTTONS (Active = Green Fill, Black Text) */
     .stButton > button {
         width: 100% !important;
         border: 1px solid #98FF98 !important;
         background-color: #1a1a1a !important;
         color: #98FF98 !important;
         border-radius: 0px !important;
-        height: 48px !important;
+        height: 45px !important;
         font-size: 9px !important;
-        margin-bottom: 8px !important;
     }
 
     /* 6. UI HARDENING (Dark Menus & Tables) */
@@ -69,8 +66,8 @@ st.markdown("""
     th { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; text-align: left !important; }
     td { border: 1px solid #333 !important; color: #98FF98 !important; padding: 10px !important; }
 
-    /* 7. TANKER FLEET FLEXBOX */
-    .fleet-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; padding: 10px; border: 1px solid #333; }
+    /* 7. FLEET GRID */
+    .fleet-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; padding: 15px; border: 1px solid #333; background: #050505; }
 
     /* 8. METRICS & SLIDERS */
     [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 32px !important; }
@@ -80,7 +77,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- SESSION STATE ---
+# --- STATE MANAGEMENT ---
 if 'orion_mode' not in st.session_state:
     st.session_state.orion_mode = "NO HLS PUSH"
 
@@ -88,52 +85,57 @@ def set_mode(m):
     st.session_state.orion_mode = m
 
 # --- UI START ---
-st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 25px;'>HLS MISSION LOGISTICS CONSOLE</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 20px;'>HLS MISSION LOGISTICS CONSOLE</h2>", unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
 
 # PANEL 1: TANKER
 with col1:
-    # Nested columns for sidebar icon + sliders
-    c1a, c1b = st.columns([1, 2])
-    with c1a:
-        st.image("tanker.svg")
-    with c1b:
-        ref_amt = st.slider("PROP PER REFILL (T)", 50, 200, 100, step=5)
-        cadence = st.slider("CADENCE (DAYS)", 1, 31, 7)
-        cost_f = st.slider("COST PER FLIGHT ($M)", 1, 500, 100, step=5)
+    with st.container(border=True):
+        st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px; margin-bottom:15px;'>STARSHIP REFILL TANKER</p>", unsafe_allow_html=True)
+        c1a, c1b = st.columns([1, 2])
+        with c1a:
+            st.image("tanker.svg")
+        with c1b:
+            ref_amt = st.slider("PROP PER REFILL (T)", 50, 200, 100, step=5)
+            cadence = st.slider("CADENCE (DAYS)", 1, 31, 7)
+            cost_f = st.slider("COST PER FLIGHT ($M)", 1, 500, 100, step=5)
 
 # PANEL 2: HLS
 with col2:
-    c2a, c2b = st.columns([1, 2])
-    with c2a:
-        st.image("hls.svg")
-    with c2b:
-        dry_m = st.slider("HLS DRY MASS (T)", 80, 250, 130, step=5)
-        isp = st.slider("ENGINE ISP (S)", 350, 380, 365)
-        orbit = st.selectbox("STAGING ORBIT", ["NRHO", "LLO", "PCO"])
+    with st.container(border=True):
+        st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px; margin-bottom:15px;'>HLS STARSHIP</p>", unsafe_allow_html=True)
+        c2a, c2b = st.columns([1, 2])
+        with c2a:
+            st.image("hls.svg")
+        with c2b:
+            dry_m = st.slider("HLS DRY MASS (T)", 80, 250, 130, step=5)
+            isp = st.slider("ENGINE ISP (S)", 350, 380, 365)
+            orbit = st.selectbox("STAGING ORBIT", ["NRHO", "LLO", "PCO"])
 
 # PANEL 3: ORION
 with col3:
-    c3a, c3b = st.columns([1, 3])
-    with c3a:
-        st.image("orion.svg")
-    with c3b:
-        modes = [
-            "NO HLS PUSH",
-            "HLS PUSH FROM LEO TO STAGING ORBIT",
-            "HLS PUSH FROM NRHO TO LLO",
-            "HLS PUSH FROM NRHO TO PCO",
-            "HLS PUSH FROM PCO TO LLO"
-        ]
-        for m in modes:
-            active = st.session_state.orion_mode == m
-            if active:
-                # High-specificity CSS to flip the button to Green-Fill / Black-Text
-                st.markdown(f"<style>div.stButton > button:first-child:contains('{m}') {{ background-color: #98FF98 !important; color: black !important; font-weight: bold; }}</style>", unsafe_allow_html=True)
-            st.button(m, key=f"btn_{m}", on_click=set_mode, args=(m,))
+    with st.container(border=True):
+        st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px; margin-bottom:15px;'>ORION MODE</p>", unsafe_allow_html=True)
+        c3a, c3b = st.columns([1, 3])
+        with c3a:
+            st.image("orion.svg")
+        with c3b:
+            modes = [
+                "NO HLS PUSH",
+                "HLS PUSH FROM LEO TO STAGING ORBIT",
+                "HLS PUSH FROM NRHO TO LLO",
+                "HLS PUSH FROM NRHO TO PCO",
+                "HLS PUSH FROM PCO TO LLO"
+            ]
+            for m in modes:
+                active = st.session_state.orion_mode == m
+                if active:
+                    # Invert button color for active mode
+                    st.markdown(f"<style>div.stButton > button:first-child:contains('{m}') {{ background-color: #98FF98 !important; color: black !important; font-weight: bold; }}</style>", unsafe_allow_html=True)
+                st.button(m, key=f"btn_{m}", on_click=set_mode, args=(m,))
 
-# --- MISSION MATH (BACKWARD INTEGRATION) ---
+# --- MISSION MATH ---
 G = 9.80665; OM = 27.0; CAP = 1500.0
 DV = {"LEO_TO_TLI": 3200, "TLI_TO_NRHO": 450, "TLI_TO_LLO": 900, "TLI_TO_PCO": 800, "NRHO_TO_SURFACE": 2750, "LLO_TO_SURFACE": 2000, "PCO_TO_SURFACE": 2400}
 
@@ -177,7 +179,7 @@ with r2:
 with r3: st.metric("REFILL CAMPAIGN LENGTH", f"{tanks * cadence} DAYS")
 with r4: st.metric("REFILL CAMPAIGN COST", f"${cost/1000:.2f} B" if cost >= 1000 else f"${cost:,.0f} M")
 
-# --- TANKER FLEET DISPLAY (ROBUST HTML) ---
+# --- TANKER FLEET ---
 st.markdown("### TANKER FLEET")
 if t_64:
     fleet_html = "".join([f"<img src='data:image/svg+xml;base64,{t_64}' style='height:60px; margin:5px;'>" for _ in range(tanks)])
