@@ -15,7 +15,7 @@ def get_b64(file):
 
 t_64 = get_b64("tanker.svg")
 
-# --- TACTICAL TERMINAL CSS (V37 STABLE) ---
+# --- TACTICAL TERMINAL CSS (STABLE V37) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
@@ -95,7 +95,8 @@ with col1:
         st.image("tanker.svg")
         ref_amt = st.slider("PROP PER REFILL (T)", 50, 200, 100, step=5)
         cadence = st.slider("CADENCE (DAYS)", 1, 31, 7)
-        cost_f = st.slider("COST PER FLIGHT ($M)", 1, 500, 100, step=5)
+        # Fixed range to start at 0 so the interval aligns to 5, 10, 15...
+        cost_f = st.slider("COST PER FLIGHT ($M)", 0, 500, 100, step=5)
 
 # PANEL 2: HLS
 with col2:
@@ -130,7 +131,7 @@ with col3:
             st.button(label_text, key=f"mode_{m}", on_click=set_mode, args=(m,))
             st.markdown("</div>", unsafe_allow_html=True)
 
-# --- MISSION MATH (V38 LOGIC + UPDATED DV) ---
+# --- MISSION MATH (VERSION 38 MATH + V41 UPDATED DV) ---
 G = 9.80665; OM = 27.0; CAP = 1500.0
 DV = {"LEO_TO_TLI": 3200, "TLI_TO_NRHO": 450, "TLI_TO_LLO": 900, "TLI_TO_PCO": 800, "NRHO_TO_SURFACE": 2750, "LLO_TO_SURFACE": 2000, "PCO_TO_SURFACE": 2400}
 
@@ -143,10 +144,10 @@ def get_log():
     log.append({"LEG": "DESCENT: ORBIT TO SURFACE", "DV": dvd, "WET MASS": f"{mdi:.1f}T", "DRY MASS": f"{mdf:.1f}T", "VEHICLE": "HLS"})
     curr = mdi
     
-    # 2. Logistics Chain (Updated Delta-V Values)
+    # 2. Logistics Chain
     arrival_target = orbit
     if "NRHO TO LLO" in m:
-        dvp = 750; arrival_target = "NRHO" # Updated from 450 to 750
+        dvp = 750; arrival_target = "NRHO"
         mpf = curr + OM; mpi = mpf * math.exp(dvp / (isp * G))
         log.append({"LEG": "ORION PUSH (NRHO->LLO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
     elif "NRHO TO PCO" in m:
@@ -154,7 +155,7 @@ def get_log():
         mpf = curr + OM; mpi = mpf * math.exp(dvp / (isp * G))
         log.append({"LEG": "ORION PUSH (NRHO->PCO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
     elif "PCO TO LLO" in m:
-        dvp = 700; arrival_target = "PCO" # Updated from 400 to 700
+        dvp = 700; arrival_target = "PCO"
         mpf = curr + OM; mpi = mpf * math.exp(dvp / (isp * G))
         log.append({"LEG": "ORION PUSH (PCO->LLO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
 
