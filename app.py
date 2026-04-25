@@ -15,41 +15,40 @@ def get_b64(file):
 
 t_64 = get_b64("tanker.svg")
 
-# --- THE "UNIFIED BOX" CSS ---
+# --- THE "HARDENED" TACTICAL CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
     /* 1. TOP GAP REMOVAL */
     [data-testid="stHeader"], [data-testid="stDecoration"], footer { display: none !important; }
-    .main .block-container { padding-top: 1rem !important; margin-top: -50px !important; }
+    .main .block-container { padding-top: 0rem !important; margin-top: -60px !important; }
 
     /* 2. GLOBAL THEME */
     .stApp { background-color: #000000 !important; color: #98FF98 !important; font-family: 'JetBrains Mono', monospace; }
     h1, h2, h3, p, span, label, div { color: #98FF98 !important; text-transform: uppercase; }
 
-    /* 3. UNIFIED MINT BORDERED CONTAINERS */
-    /* Force identical height for all three main boxes */
+    /* 3. UNIFIED MINT BOXES */
     [data-testid="stVerticalBlockBorderWrapper"] {
         border: 1px solid #98FF98 !important;
         background-color: #050505 !important;
         padding: 20px !important;
-        min-height: 580px !important; /* Forces boxes to be the same size */
+        min-height: 600px !important; /* Forces identical size */
         display: flex;
         flex-direction: column;
     }
 
     /* 4. SHIP ICON EQUALIZER */
     [data-testid="stImage"] img {
-        height: 220px !important;
+        height: 200px !important;
         width: auto !important;
         object-fit: contain;
-        margin-left: auto;
-        margin-right: auto;
+        margin: 0 auto !important;
         display: block;
     }
 
-    /* 5. BUTTONS DEFAULTS (Smaller for Orion fit) */
+    /* 5. THE BUTTONS: THE DEFINITIVE FIX */
+    /* DEFAULT STATE: Grey Fill, Mint Outline, Mint Text */
     .stButton > button {
         width: 100% !important;
         border: 1px solid #98FF98 !important;
@@ -57,10 +56,19 @@ st.markdown("""
         color: #98FF98 !important;
         border-radius: 0px !important;
         height: 40px !important;
-        font-size: 8px !important; /* Smaller text for better fit */
-        padding: 2px 5px !important;
+        font-size: 8.5px !important;
+        margin-bottom: 5px !important;
+        transition: all 0.2s ease;
         text-transform: uppercase;
-        transition: 0.2s ease-in-out;
+    }
+
+    /* SELECTED STATE: Mint Green Fill, Black Text */
+    /* Target buttons where the label starts with the checkmark symbol */
+    button[aria-label^="✔"] {
+        background-color: #98FF98 !important;
+        color: #000000 !important;
+        font-weight: bold !important;
+        border: 1px solid #98FF98 !important;
     }
 
     /* 6. UI HARDENING (Dark Menus & Tables) */
@@ -98,55 +106,40 @@ col1, col2, col3 = st.columns(3)
 with col1:
     with st.container(border=True):
         st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px; margin-bottom:15px;'>STARSHIP REFILL TANKER</p>", unsafe_allow_html=True)
-        c1a, c1b = st.columns([1, 2])
-        with c1a:
-            st.image("tanker.svg")
-        with c1b:
-            ref_amt = st.slider("PROP PER REFILL (T)", 50, 200, 100, step=5)
-            cadence = st.slider("CADENCE (DAYS)", 1, 31, 7)
-            cost_f = st.slider("COST PER FLIGHT ($M)", 1, 500, 100, step=5)
+        st.image("tanker.svg")
+        ref_amt = st.slider("PROP PER REFILL (T)", 50, 200, 100, step=5)
+        cadence = st.slider("CADENCE (DAYS)", 1, 31, 7)
+        cost_f = st.slider("COST PER FLIGHT ($M)", 1, 500, 100, step=5)
 
 # PANEL 2: HLS
 with col2:
     with st.container(border=True):
         st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px; margin-bottom:15px;'>HLS STARSHIP</p>", unsafe_allow_html=True)
-        c2a, c2b = st.columns([1, 2])
-        with c2a:
-            st.image("hls.svg")
-        with c2b:
-            dry_m = st.slider("HLS DRY MASS (T)", 80, 250, 130, step=5)
-            isp = st.slider("ENGINE ISP (S)", 350, 380, 365)
-            orbit = st.selectbox("STAGING ORBIT", ["NRHO", "LLO", "PCO"])
+        st.image("hls.svg")
+        dry_m = st.slider("HLS DRY MASS (T)", 80, 250, 130, step=5)
+        isp = st.slider("ENGINE ISP (S)", 350, 380, 365)
+        orbit = st.selectbox("STAGING ORBIT", ["NRHO", "LLO", "PCO"])
 
 # PANEL 3: ORION
 with col3:
     with st.container(border=True):
         st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px; margin-bottom:15px;'>ORION MODE</p>", unsafe_allow_html=True)
-        c3a, c3b = st.columns([1, 2.5])
-        with c3a:
-            st.image("orion.svg")
-        with c3b:
-            modes = [
-                "NO HLS PUSH",
-                "HLS PUSH FROM LEO TO STAGING ORBIT",
-                "HLS PUSH FROM NRHO TO LLO",
-                "HLS PUSH FROM NRHO TO PCO",
-                "HLS PUSH FROM PCO TO LLO"
-            ]
-            for m in modes:
-                active = st.session_state.orion_mode == m
-                if active:
-                    # High-specificity surgical CSS for active button
-                    st.markdown(f"""
-                        <style>
-                        div.stButton > button:first-child:contains("{m}") {{
-                            background-color: #98FF98 !important;
-                            color: #000000 !important;
-                            font-weight: bold !important;
-                        }}
-                        </style>
-                    """, unsafe_allow_html=True)
-                st.button(m, key=f"btn_{m}", on_click=set_mode, args=(m,))
+        st.image("orion.svg")
+        
+        modes = [
+            "NO HLS PUSH",
+            "HLS PUSH FROM LEO TO STAGING ORBIT",
+            "HLS PUSH FROM NRHO TO LLO",
+            "HLS PUSH FROM NRHO TO PCO",
+            "HLS PUSH FROM PCO TO LLO"
+        ]
+        
+        for m in modes:
+            is_selected = st.session_state.orion_mode == m
+            # If selected, add the symbol that the CSS is looking for
+            label = f"✔ {m}" if is_selected else m
+            
+            st.button(label, key=f"btn_{m}", on_click=set_mode, args=(m,))
 
 # --- MISSION MATH ---
 G = 9.80665; OM = 27.0; CAP = 1500.0
@@ -197,8 +190,6 @@ st.markdown("### TANKER FLEET")
 if t_64:
     fleet_html = "".join([f"<img src='data:image/svg+xml;base64,{t_64}' style='height:60px; margin:5px;'>" for _ in range(tanks)])
     st.markdown(f"<div class='fleet-grid'>{fleet_html}</div>", unsafe_allow_html=True)
-else:
-    st.error("ASSETS NOT LOADED")
 
 # --- MISSION READOUT ---
 st.markdown("---")
