@@ -15,47 +15,52 @@ def get_b64(file):
 
 t_64 = get_b64("tanker.svg")
 
-# --- THE "MINT OUTLINE" CSS ---
+# --- THE "UNIFIED BOX" CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
     /* 1. TOP GAP REMOVAL */
     [data-testid="stHeader"], [data-testid="stDecoration"], footer { display: none !important; }
-    .main .block-container { padding-top: 0rem !important; margin-top: -50px !important; }
+    .main .block-container { padding-top: 1rem !important; margin-top: -50px !important; }
 
     /* 2. GLOBAL THEME */
     .stApp { background-color: #000000 !important; color: #98FF98 !important; font-family: 'JetBrains Mono', monospace; }
     h1, h2, h3, p, span, label, div { color: #98FF98 !important; text-transform: uppercase; }
 
-    /* 3. MINT GREEN BORDERED CONTAINERS */
-    /* This targets Streamlit's native 'border=True' containers */
+    /* 3. UNIFIED MINT BORDERED CONTAINERS */
+    /* Force identical height for all three main boxes */
     [data-testid="stVerticalBlockBorderWrapper"] {
         border: 1px solid #98FF98 !important;
         background-color: #050505 !important;
         padding: 20px !important;
-        margin-bottom: 20px !important;
+        min-height: 580px !important; /* Forces boxes to be the same size */
+        display: flex;
+        flex-direction: column;
     }
 
-    /* 4. SHIP ICON EQUALIZER (HEIGHT BASED) */
+    /* 4. SHIP ICON EQUALIZER */
     [data-testid="stImage"] img {
-        height: 250px !important;
+        height: 220px !important;
         width: auto !important;
         object-fit: contain;
-        display: block;
         margin-left: auto;
         margin-right: auto;
+        display: block;
     }
 
-    /* 5. ORION BUTTONS (Active = Green Fill, Black Text) */
+    /* 5. BUTTONS DEFAULTS (Smaller for Orion fit) */
     .stButton > button {
         width: 100% !important;
         border: 1px solid #98FF98 !important;
         background-color: #1a1a1a !important;
         color: #98FF98 !important;
         border-radius: 0px !important;
-        height: 45px !important;
-        font-size: 9px !important;
+        height: 40px !important;
+        font-size: 8px !important; /* Smaller text for better fit */
+        padding: 2px 5px !important;
+        text-transform: uppercase;
+        transition: 0.2s ease-in-out;
     }
 
     /* 6. UI HARDENING (Dark Menus & Tables) */
@@ -117,7 +122,7 @@ with col2:
 with col3:
     with st.container(border=True):
         st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px; margin-bottom:15px;'>ORION MODE</p>", unsafe_allow_html=True)
-        c3a, c3b = st.columns([1, 3])
+        c3a, c3b = st.columns([1, 2.5])
         with c3a:
             st.image("orion.svg")
         with c3b:
@@ -131,8 +136,16 @@ with col3:
             for m in modes:
                 active = st.session_state.orion_mode == m
                 if active:
-                    # Invert button color for active mode
-                    st.markdown(f"<style>div.stButton > button:first-child:contains('{m}') {{ background-color: #98FF98 !important; color: black !important; font-weight: bold; }}</style>", unsafe_allow_html=True)
+                    # High-specificity surgical CSS for active button
+                    st.markdown(f"""
+                        <style>
+                        div.stButton > button:first-child:contains("{m}") {{
+                            background-color: #98FF98 !important;
+                            color: #000000 !important;
+                            font-weight: bold !important;
+                        }}
+                        </style>
+                    """, unsafe_allow_html=True)
                 st.button(m, key=f"btn_{m}", on_click=set_mode, args=(m,))
 
 # --- MISSION MATH ---
