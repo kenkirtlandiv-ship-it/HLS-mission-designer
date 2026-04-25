@@ -5,57 +5,66 @@ import pandas as pd
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="HLS Mission Console", layout="wide")
 
-# --- THE "HARDENED" CSS: BOXES, DROPDOWNS, AND TOP GAP ---
+# --- THE "NUCLEAR" CSS OVERRIDE ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
     /* 1. ABSOLUTE TOP GAP REMOVAL */
-    [data-testid="stHeader"], [data-testid="stDecoration"], footer { display: none !important; visibility: hidden !important; height: 0 !important; }
-    .main .block-container { padding-top: 1rem !important; margin-top: -60px !important; }
+    [data-testid="stHeader"], [data-testid="stDecoration"], footer { display: none !important; }
+    .main .block-container { padding-top: 0rem !important; margin-top: -80px !important; }
 
-    /* 2. GLOBAL COLORS */
+    /* 2. GLOBAL DARK THEME */
     .stApp { background-color: #000000 !important; color: #98FF98 !important; font-family: 'JetBrains Mono', monospace; }
     h1, h2, h3, p, span, label, div { color: #98FF98 !important; text-transform: uppercase; }
 
-    /* 3. TACTICAL BOXES (Borders around columns) */
+    /* 3. TACTICAL PANEL BOXES (Drawing the boxes from your image) */
     [data-testid="column"] {
         border: 1px solid #98FF98 !important;
         padding: 20px !important;
         background-color: #050505 !important;
-        min-height: 580px !important;
+        min-height: 550px !important;
     }
 
-    /* 4. FORCE DARK DROPDOWNS & EXPANDERS (The "White Fix") */
-    /* Target the select box and the popover menu */
+    /* 4. DROPDOWN & EXPANDER - FORCED DARK GREY */
+    /* Selectbox */
     div[data-baseweb="select"] > div { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
-    div[data-baseweb="popover"], div[role="listbox"], ul { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
+    div[role="listbox"], div[data-baseweb="popover"], ul { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
     
-    /* Target the Expanders */
-    div[data-testid="stExpander"] { background-color: #000 !important; border: 1px solid #98FF98 !important; border-radius: 0px !important; }
-    div[data-testid="stExpanderDetails"] { background-color: #000000 !important; }
+    /* Expander Details (The Telemetry Log) */
+    div[data-testid="stExpander"], div[data-testid="stExpanderDetails"] {
+        background-color: #000 !important;
+        border: 1px solid #98FF98 !important;
+        color: #98FF98 !important;
+        border-radius: 0px !important;
+    }
     
-    /* Target Tables */
-    table { background-color: #000 !important; border: 1px solid #98FF98 !important; width: 100%; }
-    th, td { border: 1px solid #333 !important; color: #98FF98 !important; padding: 10px !important; }
-
-    /* 5. BUTTONS (Active vs Inactive) */
+    /* 5. BUTTONS (Active = Green Fill, Inactive = Grey Outline) */
     .stButton > button {
         width: 100% !important;
         border: 1px solid #98FF98 !important;
-        background-color: #1a1a1a !important;
+        background-color: #1a1a1a !important; /* Greyish default */
         color: #98FF98 !important;
         border-radius: 0px !important;
         height: 50px !important;
         font-size: 10px !important;
         margin-bottom: 8px !important;
-        white-space: normal !important; /* Wrap long text */
+        text-align: center !important;
     }
 
-    /* 6. SLIDERS & METRICS */
-    .stSlider [data-baseweb="slider"] { background-color: transparent !important; }
+    /* 6. TANKER FLEET FLEXBOX */
+    .fleet-display {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .fleet-display img { width: 40px !important; }
+
+    /* 7. WARNINGS & METRICS */
     [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 32px !important; }
     .warning-red { color: #FF3131 !important; font-weight: bold; }
+    .stSlider [data-baseweb="slider"] { background-color: transparent !important; }
     hr { border: 0; border-top: 1px solid #333; margin: 15px 0; }
     </style>
     """, unsafe_allow_html=True)
@@ -67,15 +76,15 @@ if 'orion_mode' not in st.session_state:
 def set_mode(m):
     st.session_state.orion_mode = m
 
-# --- LAYOUT ---
+# --- LAYOUT START ---
 st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 20px;'>HLS MISSION LOGISTICS CONSOLE</h2>", unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
 
 # PANEL 1: TANKER
 with col1:
-    st.markdown("<p style='font-size: 14px; font-weight: bold; margin-bottom: 15px;'>STARSHIP REFILL TANKER</p>", unsafe_allow_html=True)
-    c1a, c1b = st.columns([1, 2])
+    st.markdown("<p style='font-size: 14px; font-weight: bold; margin-bottom: 20px;'>STARSHIP REFILL TANKER</p>", unsafe_allow_html=True)
+    c1a, c1b = st.columns([1, 2.5])
     with c1a:
         st.image("tanker.svg", use_container_width=True)
     with c1b:
@@ -85,8 +94,8 @@ with col1:
 
 # PANEL 2: HLS
 with col2:
-    st.markdown("<p style='font-size: 14px; font-weight: bold; margin-bottom: 15px;'>HLS STARSHIP</p>", unsafe_allow_html=True)
-    c2a, c2b = st.columns([1, 2])
+    st.markdown("<p style='font-size: 14px; font-weight: bold; margin-bottom: 20px;'>HLS STARSHIP</p>", unsafe_allow_html=True)
+    c2a, c2b = st.columns([1, 2.5])
     with c2a:
         st.image("hls.svg", use_container_width=True)
     with c2b:
@@ -94,10 +103,10 @@ with col2:
         isp = st.slider("ENGINE ISP (S)", 350, 380, 365)
         orbit = st.selectbox("STAGING ORBIT", ["NRHO", "LLO", "PCO"])
 
-# PANEL 3: ORION
+# PANEL 3: ORION (WITH VISUAL BUTTON HIGHLIGHTING)
 with col3:
-    st.markdown("<p style='font-size: 14px; font-weight: bold; margin-bottom: 15px;'>ORION MODE</p>", unsafe_allow_html=True)
-    c3a, c3b = st.columns([1, 3])
+    st.markdown("<p style='font-size: 14px; font-weight: bold; margin-bottom: 20px;'>ORION MODE</p>", unsafe_allow_html=True)
+    c3a, c3b = st.columns([1, 4])
     with c3a:
         st.image("orion.svg", use_container_width=True)
     with c3b:
@@ -112,13 +121,13 @@ with col3:
         
         for m in orion_options:
             is_active = st.session_state.orion_mode == m
-            # If button is active, force MINT background
+            # If button is active, apply MINT FILL and BLACK TEXT
             if is_active:
                 st.markdown(f"<style>div.stButton > button:first-child:contains('{m}') {{ background-color: #98FF98 !important; color: black !important; font-weight: bold; }}</style>", unsafe_allow_html=True)
             
             st.button(m, key=f"btn_{m}", on_click=set_mode, args=(m,))
 
-# --- PHYSICS ENGINE (BACKWARD INTEGRATION) ---
+# --- MATH (BACKWARD INTEGRATION) ---
 G = 9.80665; OM = 27.0; CAP = 1500.0
 DV = {"LEO_TO_TLI": 3200, "TLI_TO_NRHO": 450, "TLI_TO_LLO": 900, "TLI_TO_PCO": 800, "NRHO_TO_SURFACE": 2750, "LLO_TO_SURFACE": 2000, "PCO_TO_SURFACE": 2400}
 
@@ -134,7 +143,7 @@ def get_tel():
     log.append({"LEG": "DESCENT: ORBIT TO SURFACE", "DV": dvd, "WET MASS": f"{mdi:.1f}T", "DRY MASS": f"{mdf:.1f}T", "VEHICLE": "HLS"})
     curr = mdi
     
-    # 3. Orion Tugs
+    # 3. Orion Pushes
     if "NRHO TO LLO" in m:
         dvp = 450; mpf = curr + OM; mpi = mpf * math.exp(dvp / (isp * G))
         log.append({"LEG": "ORION PUSH (NRHO->LLO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
@@ -159,7 +168,7 @@ def get_tel():
 
 total_p, t_log = get_tel(); tanks = math.ceil(total_p / ref_amt); cost = tanks * cost_f
 
-# --- RESULTS DASHBOARD ---
+# --- RESULTS ---
 st.markdown("<h3 style='margin-top: 20px;'>RESULTS</h3><hr>", unsafe_allow_html=True)
 r1, r2, r3, r4 = st.columns(4)
 with r1: st.metric("TANKERS", tanks)
@@ -171,11 +180,10 @@ with r2:
 with r3: st.metric("REFILL CAMPAIGN LENGTH", f"{tanks * cadence} DAYS")
 with r4: st.metric("REFILL CAMPAIGN COST", f"${cost/1000:.2f} B" if cost >= 1000 else f"${cost:,.0f} M")
 
-# TANKER FLEET
-t_icons = st.columns(15) 
-for i in range(min(tanks, 15)):
-    with t_icons[i]: st.image("tanker.svg", use_container_width=True)
-if tanks > 15: st.write(f"... AND {tanks-15} MORE TANKERS")
+# --- FULL TANKER FLEET DISPLAY ---
+st.markdown("### TANKER FLEET")
+t_html = "".join([f"<img src='tanker.svg' style='width:40px; margin:5px;'>" for _ in range(tanks)])
+st.markdown(f"<div class='fleet-display'>{t_html}</div>", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 with st.expander("▶ VIEW DETAILED TELEMETRY LOG (BACKWARD INTEGRATION)"):
