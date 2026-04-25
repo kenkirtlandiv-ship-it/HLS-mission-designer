@@ -15,7 +15,7 @@ def get_b64(file):
 
 t_64 = get_b64("tanker.svg")
 
-# --- TACTICAL CSS ---
+# --- THE STABILIZED TACTICAL CSS (VERSION 37) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
@@ -28,27 +28,28 @@ st.markdown("""
     .stApp { background-color: #000000 !important; color: #98FF98 !important; font-family: 'JetBrains Mono', monospace; }
     h1, h2, h3, p, span, label, div { color: #98FF98 !important; text-transform: uppercase; }
 
-    /* 3. UNIFIED BOXES (Forced Symmetry) */
+    /* 3. UNIFIED BOXES (HARD SYMMETRY) */
     [data-testid="stVerticalBlockBorderWrapper"] {
         border: 1px solid #98FF98 !important;
         background-color: #050505 !important;
         padding: 20px !important;
-        min-height: 540px !important;
-        max-height: 540px !important;
+        min-height: 520px !important; 
+        max-height: 520px !important;
+        overflow: hidden !important;
         display: flex;
         flex-direction: column;
     }
 
-    /* 4. SHIP ICON EQUALIZER (All Ships Same Size) */
+    /* 4. SHIP ICON EQUALIZER (All Ships Same Scale) */
     [data-testid="stImage"] img {
-        height: 180px !important;
+        height: 180px !important; 
         width: auto !important;
         object-fit: contain;
         margin: 0 auto !important;
         display: block;
     }
 
-    /* 5. TACTICAL SELECTION LIST */
+    /* 5. TACTICAL SELECTION LIST (ORION) */
     .selected-opt { color: #98FF98 !important; font-weight: bold; font-size: 13px; margin-bottom: 5px; }
     .dim-opt { color: #1e3d1e !important; font-size: 13px; margin-bottom: 5px; }
     
@@ -61,7 +62,7 @@ st.markdown("""
         padding: 2px 0 !important;
         font-family: 'JetBrains Mono', monospace !important;
         text-transform: uppercase !important;
-        font-size: 12px !important;
+        font-size: 13px !important;
         width: 100% !important;
     }
     .stButton > button:hover { color: #98FF98 !important; background-color: rgba(152, 255, 152, 0.05) !important; }
@@ -79,16 +80,18 @@ st.markdown("""
 
     /* 8. METRICS & SLIDERS */
     [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 32px !important; }
+    .warning-red { color: #FF3131 !important; font-weight: bold; }
     .stSlider [data-baseweb="slider"] { background-color: transparent !important; }
     hr { border: 0; border-top: 1px solid #333; margin: 15px 0; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- STATE ---
+# --- STATE MANAGEMENT ---
 if 'orion_mode' not in st.session_state:
     st.session_state.orion_mode = "NO HLS PUSH"
 
-def set_mode(m): st.session_state.orion_mode = m
+def set_mode(m):
+    st.session_state.orion_mode = m
 
 # --- UI START ---
 st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 20px;'>HLS MISSION LOGISTICS CONSOLE</h2>", unsafe_allow_html=True)
@@ -98,47 +101,48 @@ col1, col2, col3 = st.columns(3)
 # PANEL 1: TANKER
 with col1:
     with st.container(border=True):
-        st.markdown("<p style='font-size:11px; font-weight:bold; letter-spacing:2px;'>STARSHIP REFILL TANKER</p>", unsafe_allow_html=True)
-        c1a, c1b = st.columns([1, 2])
-        with c1a: st.image("tanker.svg")
-        with c1b:
-            ref_amt = st.slider("PROP PER REFILL (T)", 50, 200, 100, step=5)
-            cadence = st.slider("CADENCE (DAYS)", 1, 31, 7)
-            cost_f = st.slider("COST PER FLIGHT ($M)", 1, 500, 100, step=5)
+        st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px;'>STARSHIP REFILL TANKER</p>", unsafe_allow_html=True)
+        st.image("tanker.svg")
+        ref_amt = st.slider("PROP PER REFILL (T)", 50, 200, 100, step=5)
+        cadence = st.slider("CADENCE (DAYS)", 1, 31, 7)
+        cost_f = st.slider("COST PER FLIGHT ($M)", 1, 500, 100, step=5)
 
 # PANEL 2: HLS
 with col2:
     with st.container(border=True):
-        st.markdown("<p style='font-size:11px; font-weight:bold; letter-spacing:2px;'>HLS STARSHIP</p>", unsafe_allow_html=True)
-        c2a, c2b = st.columns([1, 2])
-        with c2a: st.image("hls.svg")
-        with c2b:
-            dry_m = st.slider("HLS DRY MASS (T)", 80, 250, 120, step=5)
-            isp = st.slider("ENGINE ISP (S)", 350, 380, 365)
-            orbit = st.selectbox("STAGING ORBIT", ["NRHO", "LLO", "PCO"])
+        st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px;'>HLS STARSHIP</p>", unsafe_allow_html=True)
+        st.image("hls.svg")
+        dry_m = st.slider("HLS DRY MASS (T)", 80, 250, 120, step=5)
+        isp = st.slider("ENGINE ISP (S)", 350, 380, 365)
+        orbit = st.selectbox("STAGING ORBIT", ["NRHO", "LLO", "PCO"])
 
 # PANEL 3: ORION
 with col3:
     with st.container(border=True):
-        st.markdown("<p style='font-size:11px; font-weight:bold; letter-spacing:2px;'>ORION MODE</p>", unsafe_allow_html=True)
-        c3a, c3b = st.columns([1, 2.5])
-        with c3a: st.image("orion.svg")
-        with c3b:
-            available_modes = ["NO HLS PUSH", "HLS PUSH FROM LEO TO STAGING ORBIT"]
-            if orbit == "LLO": available_modes += ["HLS PUSH FROM NRHO TO LLO", "HLS PUSH FROM PCO TO LLO"]
-            elif orbit == "PCO": available_modes += ["HLS PUSH FROM NRHO TO PCO"]
+        st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px;'>ORION MODE</p>", unsafe_allow_html=True)
+        st.image("orion.svg")
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Orbital Logic Gate
+        available_modes = ["NO HLS PUSH", "HLS PUSH FROM LEO TO STAGING ORBIT"]
+        if orbit == "LLO":
+            available_modes += ["HLS PUSH FROM NRHO TO LLO", "HLS PUSH FROM PCO TO LLO"]
+        elif orbit == "PCO":
+            available_modes += ["HLS PUSH FROM NRHO TO PCO"]
             
-            if st.session_state.orion_mode not in available_modes: st.session_state.orion_mode = "NO HLS PUSH"
+        if st.session_state.orion_mode not in available_modes:
+            st.session_state.orion_mode = "NO HLS PUSH"
 
-            for m in available_modes:
-                is_active = st.session_state.orion_mode == m
-                label = f"▶ {m}" if is_active else f"  {m}"
-                css = "selected-opt" if is_active else "dim-opt"
-                st.markdown(f"<div class='{css}'>", unsafe_allow_html=True)
-                st.button(label, key=f"mode_{m}", on_click=set_mode, args=(m,))
-                st.markdown("</div>", unsafe_allow_html=True)
+        for m in available_modes:
+            is_active = st.session_state.orion_mode == m
+            label_text = f"▶ {m}" if is_active else f"  {m}"
+            css_class = "selected-opt" if is_active else "dim-opt"
+            
+            st.markdown(f"<div class='{css_class}'>", unsafe_allow_html=True)
+            st.button(label_text, key=f"mode_{m}", on_click=set_mode, args=(m,))
+            st.markdown("</div>", unsafe_allow_html=True)
 
-# --- MISSION MATH (FIXED BACKWARD INTEGRATION) ---
+# --- MISSION MATH (VERSION 38 MATH) ---
 G = 9.80665; OM = 27.0; CAP = 1500.0
 DV = {"LEO_TO_TLI": 3200, "TLI_TO_NRHO": 450, "TLI_TO_LLO": 900, "TLI_TO_PCO": 800, "NRHO_TO_SURFACE": 2750, "LLO_TO_SURFACE": 2000, "PCO_TO_SURFACE": 2400}
 
@@ -151,7 +155,7 @@ def get_log():
     log.append({"LEG": "DESCENT: ORBIT TO SURFACE", "DV": dvd, "WET MASS": f"{mdi:.1f}T", "DRY MASS": f"{mdf:.1f}T", "VEHICLE": "HLS"})
     curr = mdi
     
-    # 2. Identify Rendezvous Logic
+    # 2. Identify Rendezvous Logic (The Fix)
     arrival_target = orbit
     if "NRHO TO LLO" in m:
         dvp = 450; arrival_target = "NRHO"
@@ -193,11 +197,13 @@ with r2:
 with r3: st.metric("REFILL CAMPAIGN LENGTH", f"{tanks * cadence} DAYS")
 with r4: st.metric("REFILL CAMPAIGN COST", f"${cost/1000:.2f} B" if cost >= 1000 else f"${cost:,.0f} M")
 
+# --- TANKER FLEET ---
 st.markdown("### TANKER FLEET")
 if t_64:
     fleet_html = "".join([f"<img src='data:image/svg+xml;base64,{t_64}' style='height:60px; margin:5px;'>" for _ in range(tanks)])
     st.markdown(f"<div class='fleet-grid'>{fleet_html}</div>", unsafe_allow_html=True)
 
+# --- DETAILED MISSION READOUT ---
 st.markdown("---")
 st.markdown("### DETAILED MISSION READOUT")
 st.table(pd.DataFrame(t_log))
