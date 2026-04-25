@@ -5,28 +5,63 @@ import pandas as pd
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="HLS Logistics Terminal", layout="wide")
 
-# --- ULTIMATE DARK MODE CSS ---
+# --- THE "NUCLEAR" DARK CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
-    /* 1. REMOVE TOP LINES AND VOID */
-    [data-testid="stHeader"] {display: none;}
-    [data-testid="stDecoration"] {display: none;}
-    .block-container { padding-top: 0rem !important; padding-bottom: 0rem !important; }
+    /* 1. REMOVE TOP DECORATION LINES & VOID */
+    [data-testid="stDecoration"] { display: none !important; visibility: hidden !important; height: 0 !important; }
+    [data-testid="stHeader"] { display: none !important; visibility: hidden !important; height: 0 !important; }
+    header { visibility: hidden !important; height: 0 !important; }
     
-    /* 2. GLOBAL THEME */
+    /* REMOVE ALL PADDING FROM TOP */
+    .main .block-container { 
+        padding-top: 0rem !important; 
+        padding-bottom: 0rem !important; 
+        margin-top: -30px !important; 
+    }
+
+    /* 2. GLOBAL THEME & BACKGROUNDS */
     .stApp {
-        background-color: #000000;
-        color: #98FF98;
+        background-color: #000000 !important;
+        color: #98FF98 !important;
         font-family: 'JetBrains Mono', monospace;
     }
 
-    /* 3. ALIGNMENT & TEXT */
+    /* 3. FORCE DROPDOWNS (SELECTBOX) TO DARK GREY */
+    div[data-baseweb="select"] > div {
+        background-color: #1a1a1a !important;
+        border: 1px solid #98FF98 !important;
+        color: #98FF98 !important;
+    }
+    /* The menu that pops out */
+    div[data-baseweb="popover"] { background-color: #1a1a1a !important; }
+    ul[data-baseweb="listbox"] { background-color: #1a1a1a !important; }
+    li[data-baseweb="option"] { background-color: #1a1a1a !important; color: #98FF98 !important; }
+    li[data-baseweb="option"]:hover { background-color: #333 !important; }
+
+    /* 4. FORCE EXPANDER (DETAILS) TO STAY BLACK */
+    div[data-testid="stExpander"] {
+        background-color: #000000 !important;
+        border: 1px solid #98FF98 !important;
+        border-radius: 0px !important;
+    }
+    div[data-testid="stExpander"] > div:first-child { background-color: #000 !important; }
+    div[data-testid="stExpanderDetails"] { 
+        background-color: #000000 !important; 
+        color: #98FF98 !important;
+    }
+
+    /* 5. TEXT & TABLES */
     h1, h2, h3, p, span, label, div {
         color: #98FF98 !important;
         text-transform: uppercase;
     }
+    table { background-color: #000 !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
+    th, td { border: 1px solid #333 !important; }
+
+    /* 6. INPUT BLOCKS */
     .input-block {
         min-height: 400px;
         display: flex;
@@ -34,62 +69,25 @@ st.markdown("""
         justify-content: flex-start;
         border-top: 1px solid #98FF98;
         padding-top: 10px;
-        margin-top: 0px;
     }
 
-    /* 4. FORCE DARK SELECTBOX POPUP (THE MENU) */
-    div[data-baseweb="popover"], div[data-baseweb="listbox"] {
-        background-color: #1a1a1a !important;
-    }
-    div[data-baseweb="popover"] li {
-        background-color: #1a1a1a !important;
-        color: #98FF98 !important;
-    }
-    div[data-baseweb="popover"] li:hover {
-        background-color: #333 !important;
-    }
-    /* The closed box itself */
-    div[data-baseweb="select"] > div {
-        background-color: #1a1a1a !important;
-        border: 1px solid #98FF98 !important;
-    }
-
-    /* 5. FORCE DARK EXPANDER */
-    div[data-testid="stExpander"] {
-        background-color: #000000 !important;
-        border: 1px solid #98FF98 !important;
-        border-radius: 0px;
-    }
-    div[data-testid="stExpanderDetails"] {
-        background-color: #000000 !important;
-    }
-    [data-testid="stExpander"] svg { fill: #98FF98 !important; }
-
-    /* 6. TABLE STYLING */
-    .stTable, table { 
-        background-color: #000 !important; 
-        border: 1px solid #98FF98 !important; 
-        color: #98FF98 !important;
-    }
-    th, td { border: 1px solid #333 !important; color: #98FF98 !important; }
-
-    /* 7. WIDGETS */
-    .stSlider [data-baseweb="slider"] { background-color: transparent; }
-    [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 38px !important; }
-
+    /* 7. BUTTONS */
     .stButton > button {
         width: 100%;
         border: 1px solid #98FF98 !important;
         background-color: #111 !important;
         color: #98FF98 !important;
         border-radius: 0px;
-        height: 45px;
+        height: 40px;
         font-size: 10px !important;
-        margin-bottom: 4px;
     }
+
+    /* 8. METRICS */
+    [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 38px !important; }
+    [data-testid="stMetricLabel"] { color: #98FF98 !important; }
     
-    .tanker-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
     hr { border: 0; border-top: 1px solid #333; margin: 10px 0; }
+    .tanker-container { display: flex; flex-wrap: wrap; gap: 4px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -98,12 +96,12 @@ TANKER_SVG = """<svg width="80" height="100" viewBox="0 0 60 100" xmlns="http://
 HLS_SVG = """<svg width="80" height="100" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 5 L15 30 L15 85 L45 85 L45 30 Z" fill="#DDD" stroke="#98FF98"/></svg>"""
 ORION_SVG = """<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M40 45 L50 25 L60 45 Z" fill="#444" stroke="#98FF98"/><rect x="5" y="50" width="90" height="4" fill="#222" stroke="#98FF98"/></svg>"""
 
-# --- STATE ---
+# --- STATE MANAGEMENT ---
 if 'selected_mode' not in st.session_state:
     st.session_state.selected_mode = "MODE 1: NO PUSH"
 
 # --- CONTENT ---
-st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-top: 0px; margin-bottom: 10px;'>HLS MISSION LOGISTICS</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 15px;'>HLS MISSION LOGISTICS</h2>", unsafe_allow_html=True)
 
 c1, c2, c3 = st.columns(3)
 
@@ -143,7 +141,7 @@ with c3:
             st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- ENGINE ---
+# --- MATH ---
 G = 9.80665
 OM = 27.0
 DV = {
@@ -156,13 +154,11 @@ def get_telemetry():
     log = []
     
     # Backward Integration
-    # 1. Ascent
     dva = DV[f"{orbit}_TO_SURFACE"]
     maf = dry_m
     mai = maf * math.exp(dva / (isp * G))
     log.append({"LEG": "ASCENT: SURFACE TO ORBIT", "DV": dva, "WET MASS": f"{mai:.1f}t", "DRY MASS": f"{maf:.1f}t", "VEHICLE": "HLS"})
 
-    # 2. Descent
     dvd = dva
     mdf = mai
     mdi = mdf * math.exp(dvd / (isp * G))
