@@ -5,75 +5,85 @@ import pandas as pd
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="HLS Logistics Terminal", layout="wide")
 
-# --- TERMINAL CSS ---
+# --- THE "ZERO-VOID" DARK CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
-    /* 1. UI CLEANUP: REMOVE TOP DECORATION & VOID */
-    [data-testid="stHeader"] { visibility: hidden !important; height: 0 !important; padding: 0 !important; }
-    [data-testid="stDecoration"] { display: none !important; }
-    .block-container { padding-top: 1.5rem !important; }
+    /* 1. REMOVE TOP GAP & HEADER LINES */
+    [data-testid="stHeader"] { display: none !important; height: 0 !important; }
+    [data-testid="stDecoration"] { display: none !important; height: 0 !important; }
+    header { visibility: hidden !important; height: 0 !important; }
     
+    /* Remove the massive top padding */
+    .main .block-container { 
+        padding-top: 0rem !important; 
+        padding-bottom: 0rem !important; 
+        margin-top: -40px !important; 
+    }
+
     /* 2. GLOBAL THEME */
     .stApp {
-        background-color: #000000;
-        color: #98FF98;
+        background-color: #000000 !important;
+        color: #98FF98 !important;
         font-family: 'JetBrains Mono', monospace;
     }
 
-    /* 3. ALIGNMENT & TEXT */
+    /* 3. DROPDOWN (SELECTBOX) HARDENING */
+    /* The closed box */
+    div[data-baseweb="select"] > div {
+        background-color: #1a1a1a !important;
+        border: 1px solid #98FF98 !important;
+        color: #98FF98 !important;
+    }
+    /* The open menu (popover) */
+    div[data-baseweb="popover"], div[role="listbox"], ul {
+        background-color: #1a1a1a !important;
+        color: #98FF98 !important;
+        border: 1px solid #98FF98 !important;
+    }
+    /* The individual options */
+    li[role="option"], div[role="option"] {
+        background-color: #1a1a1a !important;
+        color: #98FF98 !important;
+    }
+    li[role="option"]:hover, div[role="option"]:hover {
+        background-color: #333 !important;
+    }
+
+    /* 4. EXPANDER HARDENING */
+    div[data-testid="stExpander"] {
+        background-color: #000000 !important;
+        border: 1px solid #98FF98 !important;
+        border-radius: 0px !important;
+    }
+    div[data-testid="stExpanderDetails"] {
+        background-color: #000000 !important;
+        color: #98FF98 !important;
+    }
+
+    /* 5. TEXT & TABLES */
     h1, h2, h3, p, span, label, div {
         color: #98FF98 !important;
         text-transform: uppercase;
     }
+    table { background-color: #000 !important; border: 1px solid #98FF98 !important; }
+    th, td { border: 1px solid #333 !important; color: #98FF98 !important; }
+
+    /* 6. INPUT BLOCKS */
     .input-block {
-        min-height: 400px;
+        min-height: 380px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
         border-top: 1px solid #98FF98;
-        padding-top: 15px;
+        padding-top: 10px;
     }
 
-    /* 4. HARDENED DARK DROPDOWNS (SELECTBOX) */
-    div[data-baseweb="select"] > div {
-        background-color: #1a1a1a !important;
-        border: 1px solid #98FF98 !important;
-    }
-    /* Targets the popover menu specifically */
-    div[data-baseweb="popover"], div[role="listbox"], ul[data-baseweb="listbox"] {
-        background-color: #1a1a1a !important;
-        color: #98FF98 !important;
-        border: 1px solid #98FF98 !important;
-    }
-    div[role="option"], li[data-baseweb="option"] {
-        background-color: #1a1a1a !important;
-        color: #98FF98 !important;
-    }
-    div[role="option"]:hover, li[data-baseweb="option"]:hover {
-        background-color: #333 !important;
-    }
-
-    /* 5. HARDENED DARK EXPANDER (DETAILS) */
-    div[data-testid="stExpander"] {
-        background-color: #000000 !important;
-        border: 1px solid #98FF98 !important;
-        border-radius: 0px;
-    }
-    div[data-testid="stExpanderDetails"] {
-        background-color: #000000 !important;
-    }
-
-    /* 6. WARNING STYLING */
-    .warning-red {
-        color: #FF3131 !important;
-        font-weight: bold;
-    }
-
-    /* 7. WIDGETS & BUTTONS */
-    .stSlider [data-baseweb="slider"] { background-color: transparent; }
+    /* 7. WIDGETS */
+    .stSlider [data-baseweb="slider"] { background-color: transparent !important; }
     [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 34px !important; }
+    .warning-red { color: #FF3131 !important; font-weight: bold; }
 
     .stButton > button {
         width: 100%;
@@ -81,12 +91,11 @@ st.markdown("""
         background-color: #111 !important;
         color: #98FF98 !important;
         border-radius: 0px;
-        height: 45px;
+        height: 40px;
         font-size: 10px !important;
-        margin-bottom: 4px;
     }
     
-    .tanker-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+    .tanker-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
     hr { border: 0; border-top: 1px solid #333; margin: 10px 0; }
     </style>
     """, unsafe_allow_html=True)
@@ -101,7 +110,7 @@ if 'selected_mode' not in st.session_state:
     st.session_state.selected_mode = "MODE 1: NO PUSH"
 
 # --- CONTENT ---
-st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 20px;'>HLS MISSION LOGISTICS</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 10px; margin-top: 0px;'>HLS MISSION LOGISTICS</h2>", unsafe_allow_html=True)
 
 c1, c2, c3 = st.columns(3)
 
@@ -154,20 +163,19 @@ def get_telemetry():
     m = st.session_state.selected_mode
     log = []
     
-    # Leg 1: Ascent
+    # 1. Ascent
     dva = DV[f"{orbit}_TO_SURFACE"]
     maf = dry_m
     mai = maf * math.exp(dva / (isp * G))
     log.append({"LEG": "ASCENT: SURFACE TO ORBIT", "DV": dva, "WET MASS": f"{mai:.1f}t", "DRY MASS": f"{maf:.1f}t", "VEHICLE": "HLS"})
 
-    # Leg 2: Descent
+    # 2. Descent
     dvd = dva
     mdf = mai
     mdi = mdf * math.exp(dvd / (isp * G))
     log.append({"LEG": "DESCENT: ORBIT TO SURFACE", "DV": dvd, "WET MASS": f"{mdi:.1f}t", "DRY MASS": f"{mdf:.1f}t", "VEHICLE": "HLS"})
 
     curr = mdi
-    
     if "MODE 3" in m or "MODE 4" in m:
         dvp = 450 if "NRHO TO LLO" in m else 400 if "PCO TO LLO" in m else 350
         mpf = curr + OM
@@ -193,12 +201,11 @@ def get_telemetry():
 total_p, t_log = get_telemetry()
 tanks = math.ceil(total_p / ref_amt)
 
-# --- RESULTS SECTION ---
+# --- RESULTS ---
 st.markdown("<hr>", unsafe_allow_html=True)
 r1, r2, r3 = st.columns(3)
 
-with r1: 
-    st.metric("TANKERS", tanks)
+with r1: st.metric("TANKERS", tanks)
 
 with r2: 
     status_class = "warning-red" if total_p > CAPACITY else ""
@@ -207,8 +214,7 @@ with r2:
     if total_p > CAPACITY:
         st.markdown(f"<p class='warning-red' style='font-size:12px;'>MISSION WOULD REQUIRE ADDITIONAL REFILLS IN HIGHER ORBIT, OR AT THE MOON</p>", unsafe_allow_html=True)
 
-with r3: 
-    st.metric("REFILL CAMPAIGN LENGTH", f"{tanks * cadence} DAYS")
+with r3: st.metric("REFILL CAMPAIGN LENGTH", f"{tanks * cadence} DAYS")
 
 t_icons = "".join([f"<div style='display:inline-block; margin-right:4px;'>{TANKER_SVG}</div>" for _ in range(tanks)])
 st.markdown(f"<div class='tanker-container'>{t_icons}</div>", unsafe_allow_html=True)
