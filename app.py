@@ -5,85 +5,78 @@ import pandas as pd
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="HLS Logistics Terminal", layout="wide")
 
-# --- THE "ZERO-VOID" DARK CSS ---
+# --- TERMINAL CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
-    /* 1. REMOVE TOP GAP & HEADER LINES */
-    [data-testid="stHeader"] { display: none !important; height: 0 !important; }
-    [data-testid="stDecoration"] { display: none !important; height: 0 !important; }
-    header { visibility: hidden !important; height: 0 !important; }
-    
-    /* Remove the massive top padding */
-    .main .block-container { 
+    /* 1. UI CLEANUP: REMOVE TOP DECORATION & VOID */
+    [data-testid="stHeader"] { visibility: hidden !important; height: 0 !important; padding: 0 !important; }
+    [data-testid="stDecoration"] { display: none !important; }
+    .block-container { 
         padding-top: 0rem !important; 
         padding-bottom: 0rem !important; 
-        margin-top: -40px !important; 
+        margin-top: -35px !important; 
     }
-
+    
     /* 2. GLOBAL THEME */
     .stApp {
-        background-color: #000000 !important;
-        color: #98FF98 !important;
+        background-color: #000000;
+        color: #98FF98;
         font-family: 'JetBrains Mono', monospace;
     }
 
-    /* 3. DROPDOWN (SELECTBOX) HARDENING */
-    /* The closed box */
-    div[data-baseweb="select"] > div {
-        background-color: #1a1a1a !important;
-        border: 1px solid #98FF98 !important;
-        color: #98FF98 !important;
-    }
-    /* The open menu (popover) */
-    div[data-baseweb="popover"], div[role="listbox"], ul {
-        background-color: #1a1a1a !important;
-        color: #98FF98 !important;
-        border: 1px solid #98FF98 !important;
-    }
-    /* The individual options */
-    li[role="option"], div[role="option"] {
-        background-color: #1a1a1a !important;
-        color: #98FF98 !important;
-    }
-    li[role="option"]:hover, div[role="option"]:hover {
-        background-color: #333 !important;
-    }
-
-    /* 4. EXPANDER HARDENING */
-    div[data-testid="stExpander"] {
-        background-color: #000000 !important;
-        border: 1px solid #98FF98 !important;
-        border-radius: 0px !important;
-    }
-    div[data-testid="stExpanderDetails"] {
-        background-color: #000000 !important;
-        color: #98FF98 !important;
-    }
-
-    /* 5. TEXT & TABLES */
+    /* 3. ALIGNMENT & TEXT */
     h1, h2, h3, p, span, label, div {
         color: #98FF98 !important;
         text-transform: uppercase;
     }
-    table { background-color: #000 !important; border: 1px solid #98FF98 !important; }
-    th, td { border: 1px solid #333 !important; color: #98FF98 !important; }
-
-    /* 6. INPUT BLOCKS */
     .input-block {
-        min-height: 380px;
+        min-height: 420px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
         border-top: 1px solid #98FF98;
-        padding-top: 10px;
+        padding-top: 15px;
     }
 
-    /* 7. WIDGETS */
-    .stSlider [data-baseweb="slider"] { background-color: transparent !important; }
-    [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 34px !important; }
-    .warning-red { color: #FF3131 !important; font-weight: bold; }
+    /* 4. HARDENED DARK DROPDOWNS */
+    div[data-baseweb="select"] > div {
+        background-color: #1a1a1a !important;
+        border: 1px solid #98FF98 !important;
+    }
+    div[data-baseweb="popover"], div[role="listbox"], ul[data-baseweb="listbox"] {
+        background-color: #1a1a1a !important;
+        color: #98FF98 !important;
+        border: 1px solid #98FF98 !important;
+    }
+    div[role="option"], li[data-baseweb="option"] {
+        background-color: #1a1a1a !important;
+        color: #98FF98 !important;
+    }
+    div[role="option"]:hover, li[data-baseweb="option"]:hover {
+        background-color: #333 !important;
+    }
+
+    /* 5. HARDENED DARK EXPANDER */
+    div[data-testid="stExpander"] {
+        background-color: #000000 !important;
+        border: 1px solid #98FF98 !important;
+        border-radius: 0px;
+    }
+    div[data-testid="stExpanderDetails"] {
+        background-color: #000000 !important;
+    }
+
+    /* 6. WARNING STYLING */
+    .warning-red {
+        color: #FF3131 !important;
+        font-weight: bold;
+    }
+
+    /* 7. WIDGETS & BUTTONS */
+    .stSlider [data-baseweb="slider"] { background-color: transparent; }
+    [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 32px !important; }
 
     .stButton > button {
         width: 100%;
@@ -93,24 +86,25 @@ st.markdown("""
         border-radius: 0px;
         height: 40px;
         font-size: 10px !important;
+        margin-bottom: 4px;
     }
     
-    .tanker-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+    .tanker-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
     hr { border: 0; border-top: 1px solid #333; margin: 10px 0; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- SVG PLACEHOLDERS ---
-TANKER_SVG = """<svg width="80" height="100" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 5 L15 25 L15 85 L10 95 L50 95 L45 85 L45 25 Z" fill="#444" stroke="#98FF98"/></svg>"""
-HLS_SVG = """<svg width="80" height="100" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 5 L15 30 L15 85 L45 85 L45 30 Z" fill="#DDD" stroke="#98FF98"/></svg>"""
-ORION_SVG = """<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M40 45 L50 25 L60 45 Z" fill="#444" stroke="#98FF98"/><rect x="5" y="50" width="90" height="4" fill="#222" stroke="#98FF98"/></svg>"""
+TANKER_SVG = """<svg width="80" height="90" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 5 L15 25 L15 85 L10 95 L50 95 L45 85 L45 25 Z" fill="#444" stroke="#98FF98"/></svg>"""
+HLS_SVG = """<svg width="80" height="90" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 5 L15 30 L15 85 L45 85 L45 30 Z" fill="#DDD" stroke="#98FF98"/></svg>"""
+ORION_SVG = """<svg width="90" height="90" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M40 45 L50 25 L60 45 Z" fill="#444" stroke="#98FF98"/><rect x="5" y="50" width="90" height="4" fill="#222" stroke="#98FF98"/></svg>"""
 
 # --- STATE ---
 if 'selected_mode' not in st.session_state:
     st.session_state.selected_mode = "MODE 1: NO PUSH"
 
 # --- CONTENT ---
-st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 10px; margin-top: 0px;'>HLS MISSION LOGISTICS</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 20px;'>HLS MISSION LOGISTICS</h2>", unsafe_allow_html=True)
 
 c1, c2, c3 = st.columns(3)
 
@@ -120,6 +114,7 @@ with c1:
     st.write("TANKER CONFIG")
     ref_amt = st.slider("PROP PER REFILL (t)", 50, 200, 100, step=5)
     cadence = st.slider("CADENCE (DAYS)", 1, 31, 7)
+    cost_per_flight = st.slider("COST PER FLIGHT ($M)", 1, 500, 100, step=5)
     st.markdown("</div>", unsafe_allow_html=True)
 
 with c2:
@@ -127,7 +122,7 @@ with c2:
     st.markdown(HLS_SVG, unsafe_allow_html=True)
     st.write("HLS CONFIG")
     dry_m = st.slider("HLS DRY MASS (t)", 80, 250, 120, step=5)
-    isp = st.slider("ENGINE ISP (s)", 350, 380, 375)
+    isp = st.slider("ENGINE ISP (s)", 350, 380, 365) # Updated default to 365
     orbit = st.selectbox("STAGING ORBIT", ["NRHO", "LLO", "PCO"])
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -200,21 +195,30 @@ def get_telemetry():
 
 total_p, t_log = get_telemetry()
 tanks = math.ceil(total_p / ref_amt)
+total_campaign_cost = tanks * cost_per_flight
 
 # --- RESULTS ---
+st.markdown("<h3 style='letter-spacing: 3px;'>RESULTS</h3>", unsafe_allow_html=True)
 st.markdown("<hr>", unsafe_allow_html=True)
-r1, r2, r3 = st.columns(3)
+r1, r2, r3, r4 = st.columns(4)
 
 with r1: st.metric("TANKERS", tanks)
 
 with r2: 
     status_class = "warning-red" if total_p > CAPACITY else ""
     st.markdown(f"TOTAL PROPELLANT")
-    st.markdown(f"<p class='{status_class}' style='font-size:34px; margin:0;'>{total_p:,.1f} T / {CAPACITY:,.0f} T</p>", unsafe_allow_html=True)
+    st.markdown(f"<p class='{status_class}' style='font-size:32px; margin:0;'>{total_p:,.1f} T / {CAPACITY:,.0f} T</p>", unsafe_allow_html=True)
     if total_p > CAPACITY:
-        st.markdown(f"<p class='warning-red' style='font-size:12px;'>MISSION WOULD REQUIRE ADDITIONAL REFILLS IN HIGHER ORBIT, OR AT THE MOON</p>", unsafe_allow_html=True)
+        st.markdown(f"<p class='warning-red' style='font-size:10px;'>MISSION WOULD REQUIRE ADDITIONAL REFILLS IN HIGHER ORBIT, OR AT THE MOON</p>", unsafe_allow_html=True)
 
 with r3: st.metric("REFILL CAMPAIGN LENGTH", f"{tanks * cadence} DAYS")
+
+with r4: 
+    # Logic to show Billions if cost is very high
+    if total_campaign_cost >= 1000:
+        st.metric("REFILL CAMPAIGN COST", f"${total_campaign_cost/1000:.2f} B")
+    else:
+        st.metric("REFILL CAMPAIGN COST", f"${total_campaign_cost:,.0f} M")
 
 t_icons = "".join([f"<div style='display:inline-block; margin-right:4px;'>{TANKER_SVG}</div>" for _ in range(tanks)])
 st.markdown(f"<div class='tanker-container'>{t_icons}</div>", unsafe_allow_html=True)
