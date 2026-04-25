@@ -5,31 +5,37 @@ import pandas as pd
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="HLS Logistics Terminal", layout="wide")
 
-# --- THE TACTICAL CSS OVERRIDE ---
+# --- CUSTOM CSS: THE "HARDENED" DARK TERMINAL ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
-    /* KILL THE TOP LINES AND VOID */
-    [data-testid="stHeader"], [data-testid="stDecoration"], footer { 
-        display: none !important; 
-        visibility: hidden !important; 
-        height: 0 !important; 
-    }
+    /* 1. ABSOLUTE REMOVAL OF TOP DECORATION & VOID */
+    [data-testid="stHeader"] { display: none !important; }
+    [data-testid="stDecoration"] { display: none !important; }
+    header { visibility: hidden !important; height: 0 !important; }
+    
+    /* Pull content to the very top */
     .main .block-container { 
         padding-top: 0rem !important; 
-        margin-top: -50px !important; 
+        padding-bottom: 0rem !important; 
+        margin-top: -60px !important; 
     }
 
-    /* GLOBAL THEME */
+    /* 2. GLOBAL DARK THEME */
     .stApp {
         background-color: #000000 !important;
         color: #98FF98 !important;
         font-family: 'JetBrains Mono', monospace;
     }
 
-    /* DARK DROPDOWNS - NO MORE WHITE */
-    div[data-baseweb="select"] > div, div[data-baseweb="popover"], div[role="listbox"], ul {
+    /* 3. DROPDOWN (SELECTBOX) DARK MODE */
+    div[data-baseweb="select"] > div {
+        background-color: #1a1a1a !important;
+        border: 1px solid #98FF98 !important;
+        color: #98FF98 !important;
+    }
+    div[data-baseweb="popover"], div[role="listbox"], ul {
         background-color: #1a1a1a !important;
         color: #98FF98 !important;
         border: 1px solid #98FF98 !important;
@@ -38,25 +44,42 @@ st.markdown("""
         background-color: #1a1a1a !important;
         color: #98FF98 !important;
     }
-    li[role="option"]:hover { background-color: #333 !important; }
 
-    /* DARK EXPANDER */
-    div[data-testid="stExpander"], div[data-testid="stExpanderDetails"] {
+    /* 4. EXPANDER & TABLE DARK MODE */
+    div[data-testid="stExpander"] {
         background-color: #000000 !important;
         border: 1px solid #98FF98 !important;
-        color: #98FF98 !important;
         border-radius: 0px !important;
     }
+    div[data-testid="stExpanderDetails"] {
+        background-color: #000000 !important;
+        color: #98FF98 !important;
+    }
+    table { background-color: #000 !important; border: 1px solid #98FF98 !important; }
+    th, td { border: 1px solid #333 !important; color: #98FF98 !important; }
 
-    /* TEXT & ALIGNMENT */
-    h1, h2, h3, p, span, label, div { color: #98FF98 !important; text-transform: uppercase; }
-    
+    /* 5. TEXT & LAYOUT */
+    h1, h2, h3, p, span, label, div {
+        color: #98FF98 !important;
+        text-transform: uppercase;
+    }
     .input-block {
         min-height: 480px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
         border-top: 1px solid #98FF98;
         padding-top: 10px;
     }
 
+    /* ROTATION FOR HORIZONTAL SHIPS */
+    .horizontal-ship {
+        transform: rotate(90deg);
+        margin: 40px 0; /* Space for the rotation swing */
+    }
+
+    /* 6. WIDGETS */
+    .stSlider [data-baseweb="slider"] { background-color: transparent !important; }
     [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 32px !important; }
     .warning-red { color: #FF3131 !important; font-weight: bold; }
 
@@ -70,7 +93,7 @@ st.markdown("""
         font-size: 10px !important;
     }
     
-    .tanker-container { display: flex; flex-wrap: wrap; gap: 4px; }
+    .tanker-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
     hr { border: 0; border-top: 1px solid #333; margin: 10px 0; }
     </style>
     """, unsafe_allow_html=True)
@@ -79,15 +102,18 @@ st.markdown("""
 if 'selected_mode' not in st.session_state:
     st.session_state.selected_mode = "MODE 1: NO PUSH"
 
-# --- INPUT SECTION ---
-st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-top: 0px;'>HLS MISSION LOGISTICS</h2>", unsafe_allow_html=True)
+# --- CONTENT ---
+st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 5px; margin-top: 0px;'>HLS MISSION LOGISTICS</h2>", unsafe_allow_html=True)
 
 c1, c2, c3 = st.columns(3)
 
 with c1:
     st.markdown("<div class='input-block'>", unsafe_allow_html=True)
-    st.image("tanker.svg", width=120)
-    st.write("TANKER CONFIG")
+    # Rotating the tanker to be horizontal
+    st.markdown('<div class="horizontal-ship">', unsafe_allow_html=True)
+    st.image("tanker.svg", width=100)
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.write("STARSHIP REFILL TANKER")
     ref_amt = st.slider("PROP PER REFILL (t)", 50, 200, 100, step=5)
     cadence = st.slider("CADENCE (DAYS)", 1, 31, 7)
     cost_f = st.slider("COST PER FLIGHT ($M)", 1, 500, 100, step=5)
@@ -95,8 +121,11 @@ with c1:
 
 with c2:
     st.markdown("<div class='input-block'>", unsafe_allow_html=True)
-    st.image("hls.svg", width=80)
-    st.write("HLS CONFIG")
+    # Rotating the HLS to be horizontal
+    st.markdown('<div class="horizontal-ship">', unsafe_allow_html=True)
+    st.image("hls.svg", width=100)
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.write("HLS STARSHIP")
     dry_m = st.slider("HLS DRY MASS (t)", 80, 250, 120, step=5)
     isp = st.slider("ENGINE ISP (s)", 350, 380, 365)
     orbit = st.selectbox("STAGING ORBIT", ["NRHO", "LLO", "PCO"])
@@ -104,7 +133,8 @@ with c2:
 
 with c3:
     st.markdown("<div class='input-block'>", unsafe_allow_html=True)
-    st.image("orion.svg", width=180)
+    # Orion is naturally horizontal
+    st.image("orion.svg", width=220)
     st.write("ORION MODE")
     modes = ["MODE 1: NO PUSH", "MODE 2: LEO TO STAGING"]
     if orbit == "LLO": modes += ["MODE 3: NRHO TO LLO", "MODE 4: PCO TO LLO"]
@@ -116,7 +146,7 @@ with c3:
         if st.button(f"▶ {m}" if active else m): st.session_state.selected_mode = m; st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- MATH ---
+# --- MATH (BACKWARD INTEGRATION) ---
 G = 9.80665; OM = 27.0; CAP = 1500.0
 DV = {"LEO_TO_TLI": 3200, "TLI_TO_NRHO": 450, "TLI_TO_LLO": 900, "TLI_TO_PCO": 800, "NRHO_TO_SURFACE": 2750, "LLO_TO_SURFACE": 2000, "PCO_TO_SURFACE": 2400}
 
@@ -143,7 +173,7 @@ def get_tel():
 total_p, t_log = get_tel(); tanks = math.ceil(total_p / ref_amt); cost = tanks * cost_f
 
 # --- RESULTS ---
-st.markdown("<h3 style='margin-bottom:-10px;'>RESULTS</h3><hr>", unsafe_allow_html=True)
+st.markdown("<h3 style='margin-bottom:0px; margin-top:10px;'>RESULTS</h3><hr style='margin-top:5px;'>", unsafe_allow_html=True)
 r1, r2, r3, r4 = st.columns(4)
 with r1: st.metric("TANKERS", tanks)
 with r2: 
@@ -154,11 +184,11 @@ with r2:
 with r3: st.metric("REFILL CAMPAIGN LENGTH", f"{tanks * cadence} DAYS")
 with r4: st.metric("REFILL CAMPAIGN COST", f"${cost/1000:.2f} B" if cost >= 1000 else f"${cost:,.0f} M")
 
-# TANKER ROW - Using st.image for the fleet
-t_cols = st.columns(15) # Show up to 15 side-by-side
+# TANKER ROW - Displaying actual icons
+t_cols = st.columns(15) 
 for i in range(min(tanks, 15)):
     with t_cols[i]: st.image("tanker.svg")
-if tanks > 15: st.write(f"... and {tanks-15} more tankers")
+if tanks > 15: st.write(f"... AND {tanks-15} MORE TANKERS")
 
 st.markdown("<br>", unsafe_allow_html=True)
 with st.expander("▶ VIEW DETAILED TELEMETRY LOG"): st.table(pd.DataFrame(t_log))
