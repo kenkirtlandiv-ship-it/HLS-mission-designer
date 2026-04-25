@@ -5,12 +5,12 @@ import pandas as pd
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="HLS Logistics Terminal", layout="wide")
 
-# --- REFINED TERMINAL CSS ---
+# --- TERMINAL CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
-    /* 1. REMOVE TOP LINES & VOID (Surgical Fix) */
+    /* 1. UI CLEANUP: REMOVE TOP DECORATION & VOID */
     [data-testid="stHeader"] { visibility: hidden !important; height: 0 !important; padding: 0 !important; }
     [data-testid="stDecoration"] { display: none !important; }
     .block-container { padding-top: 1.5rem !important; }
@@ -36,18 +36,26 @@ st.markdown("""
         padding-top: 15px;
     }
 
-    /* 4. DARK DROPDOWNS */
+    /* 4. HARDENED DARK DROPDOWNS (SELECTBOX) */
     div[data-baseweb="select"] > div {
         background-color: #1a1a1a !important;
         border: 1px solid #98FF98 !important;
     }
-    div[role="listbox"], div[data-baseweb="popover"] {
+    /* Targets the popover menu specifically */
+    div[data-baseweb="popover"], div[role="listbox"], ul[data-baseweb="listbox"] {
         background-color: #1a1a1a !important;
         color: #98FF98 !important;
         border: 1px solid #98FF98 !important;
     }
+    div[role="option"], li[data-baseweb="option"] {
+        background-color: #1a1a1a !important;
+        color: #98FF98 !important;
+    }
+    div[role="option"]:hover, li[data-baseweb="option"]:hover {
+        background-color: #333 !important;
+    }
 
-    /* 5. DARK EXPANDER (DETAILS) */
+    /* 5. HARDENED DARK EXPANDER (DETAILS) */
     div[data-testid="stExpander"] {
         background-color: #000000 !important;
         border: 1px solid #98FF98 !important;
@@ -65,7 +73,7 @@ st.markdown("""
 
     /* 7. WIDGETS & BUTTONS */
     .stSlider [data-baseweb="slider"] { background-color: transparent; }
-    [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 38px !important; }
+    [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 34px !important; }
 
     .stButton > button {
         width: 100%;
@@ -79,7 +87,7 @@ st.markdown("""
     }
     
     .tanker-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
-    hr { border: 0; border-top: 1px solid #333; margin: 15px 0; }
+    hr { border: 0; border-top: 1px solid #333; margin: 10px 0; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -136,6 +144,7 @@ with c3:
 # --- MATH (BACKWARD INTEGRATION) ---
 G = 9.80665
 OM = 27.0
+CAPACITY = 1500.0
 DV = {
     "LEO_TO_TLI": 3200, "TLI_TO_NRHO": 450, "TLI_TO_LLO": 900, "TLI_TO_PCO": 800,
     "NRHO_TO_SURFACE": 2750, "LLO_TO_SURFACE": 2000, "PCO_TO_SURFACE": 2400
@@ -159,7 +168,6 @@ def get_telemetry():
 
     curr = mdi
     
-    # Orion Pushes
     if "MODE 3" in m or "MODE 4" in m:
         dvp = 450 if "NRHO TO LLO" in m else 400 if "PCO TO LLO" in m else 350
         mpf = curr + OM
@@ -193,18 +201,15 @@ with r1:
     st.metric("TANKERS", tanks)
 
 with r2: 
-    if total_p > 1500:
-        # Custom HTML to show RED text for propellant
-        st.markdown(f"TOTAL PROPELLANT")
-        st.markdown(f"<p class='warning-red' style='font-size:38px; margin:0;'>{total_p:,.1f} T</p>", unsafe_allow_html=True)
+    status_class = "warning-red" if total_p > CAPACITY else ""
+    st.markdown(f"TOTAL PROPELLANT")
+    st.markdown(f"<p class='{status_class}' style='font-size:34px; margin:0;'>{total_p:,.1f} T / {CAPACITY:,.0f} T</p>", unsafe_allow_html=True)
+    if total_p > CAPACITY:
         st.markdown(f"<p class='warning-red' style='font-size:12px;'>MISSION WOULD REQUIRE ADDITIONAL REFILLS IN HIGHER ORBIT, OR AT THE MOON</p>", unsafe_allow_html=True)
-    else:
-        st.metric("TOTAL PROPELLANT", f"{total_p:,.1f} T")
 
 with r3: 
     st.metric("REFILL CAMPAIGN LENGTH", f"{tanks * cadence} DAYS")
 
-# Tanker Visualization
 t_icons = "".join([f"<div style='display:inline-block; margin-right:4px;'>{TANKER_SVG}</div>" for _ in range(tanks)])
 st.markdown(f"<div class='tanker-container'>{t_icons}</div>", unsafe_allow_html=True)
 
