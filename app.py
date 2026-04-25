@@ -3,99 +3,92 @@ import math
 import pandas as pd
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="HLS Mission Console", layout="wide")
+st.set_page_config(page_title="HLS Mission Logistics Console", layout="wide")
 
-# --- THE "HARDENED" CSS: INSET TITLES & DARK UI ---
+# --- CSS OVERHAUL: TACTICAL TERMINAL DESIGN ---
 st.markdown("""
-    <style>
+<style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
-    /* 1. TOP GAP & HEADER REMOVAL */
+    /* 1. KILL HEADER/VOID */
     [data-testid="stHeader"], [data-testid="stDecoration"], footer { display: none !important; }
-    .main .block-container { padding-top: 1rem !important; margin-top: -60px !important; }
+    .main .block-container { padding-top: 0rem !important; margin-top: -40px !important; }
 
-    /* 2. GLOBAL THEME */
+    /* 2. THEME BASE */
     .stApp { background-color: #000000 !important; color: #98FF98 !important; font-family: 'JetBrains Mono', monospace; }
     h1, h2, h3, p, span, label, div { color: #98FF98 !important; text-transform: uppercase; }
 
-    /* 3. TACTICAL BOX DESIGN (Inset titles) */
-    .tactical-box {
+    /* 3. TACTICAL PANEL BOXES (Matching reference image) */
+    .tactical-panel {
         border: 1px solid #98FF98;
-        padding: 20px 15px 15px 15px;
+        padding: 25px 15px 15px 15px;
         position: relative;
         background-color: #050505;
         margin-bottom: 20px;
         min-height: 520px;
     }
-    .box-title {
+    .panel-title {
         position: absolute;
-        top: -12px;
+        top: -10px;
         left: 15px;
         background-color: #000;
-        padding: 0 10px;
-        font-size: 14px;
+        padding: 0 8px;
+        font-size: 13px;
         letter-spacing: 2px;
+        color: #98FF98;
         font-weight: bold;
     }
 
-    /* 4. SHIP ICON SIZING (Forces height match) */
-    .ship-icon img {
-        height: 250px !important;
-        width: auto !important;
-    }
-
-    /* 5. BUTTONS (Active = Green Fill, Inactive = Dark Grey) */
+    /* 4. BUTTONS (Active State Highlighting) */
     .stButton > button {
         width: 100% !important;
         border: 1px solid #98FF98 !important;
         background-color: #1a1a1a !important;
         color: #98FF98 !important;
         border-radius: 0px !important;
-        height: 45px !important;
-        font-size: 9px !important;
+        height: 48px !important;
+        font-size: 10px !important;
         margin-bottom: 8px !important;
+        text-align: center !important;
     }
 
-    /* 6. DARK DROPDOWN & TABLE HARDENING */
+    /* 5. UI HARDENING (Dark Menus) */
     div[data-baseweb="select"] > div { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
-    div[role="listbox"], div[data-baseweb="popover"] { background-color: #1a1a1a !important; color: #98FF98 !important; }
-    
+    div[role="listbox"], div[data-baseweb="popover"], ul { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
+    li[role="option"] { background-color: #1a1a1a !important; color: #98FF98 !important; }
+    li[role="option"]:hover { background-color: #333 !important; }
+
+    /* 6. TABLE STYLING */
     table { background-color: #000 !important; border: 1px solid #98FF98 !important; width: 100%; }
-    th { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
-    td { border: 1px solid #333 !important; color: #98FF98 !important; padding: 10px !important; }
+    th { background-color: #1a1a1a !important; border: 1px solid #98FF98 !important; color: #98FF98 !important; text-align: left; }
+    td { border: 1px solid #333 !important; color: #98FF98 !important; padding: 8px !important; }
 
-    /* 7. FLEET GRID (Shows all tankers) */
-    .fleet-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    .fleet-grid img { height: 60px !important; }
-
-    /* 8. METRICS & SLIDERS */
+    /* 7. METRICS & WARNINGS */
     [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 32px !important; }
     .warning-red { color: #FF3131 !important; font-weight: bold; }
     .stSlider [data-baseweb="slider"] { background-color: transparent !important; }
     hr { border: 0; border-top: 1px solid #333; margin: 15px 0; }
-    </style>
-    """, unsafe_allow_html=True)
+</style>
+""", unsafe_allow_html=True)
 
-# --- SESSION STATE ---
+# --- STATE MANAGEMENT ---
 if 'orion_mode' not in st.session_state:
     st.session_state.orion_mode = "No HLS Push"
 
-def set_mode(m):
-    st.session_state.orion_mode = m
+def set_orion_mode(mode):
+    st.session_state.orion_mode = mode
 
-# --- UI CONTENT ---
-st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 25px;'>HLS MISSION LOGISTICS CONSOLE</h2>", unsafe_allow_html=True)
+# --- UI START ---
+st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 15px;'>HLS MISSION LOGISTICS CONSOLE</h2>", unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
 
 # PANEL 1: TANKER
 with col1:
-    st.markdown('<div class="tactical-box"><div class="box-title">STARSHIP REFILL TANKER</div>', unsafe_allow_html=True)
-    c1a, c1b = st.columns([1, 2])
+    st.markdown('<div class="tactical-panel"><div class="panel-title">STARSHIP REFILL TANKER</div>', unsafe_allow_html=True)
+    c1a, c1b = st.columns([1, 2.5])
     with c1a:
-        st.markdown('<div class="ship-icon">', unsafe_allow_html=True)
         st.image("tanker.svg", use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
     with c1b:
         ref_amt = st.slider("PROP PER REFILL (T)", 50, 200, 100, step=5)
         cadence = st.slider("CADENCE (DAYS)", 1, 31, 7)
@@ -104,12 +97,10 @@ with col1:
 
 # PANEL 2: HLS
 with col2:
-    st.markdown('<div class="tactical-box"><div class="box-title">HLS STARSHIP</div>', unsafe_allow_html=True)
-    c2a, c2b = st.columns([1, 2])
+    st.markdown('<div class="tactical-panel"><div class="panel-title">HLS STARSHIP</div>', unsafe_allow_html=True)
+    c2a, c2b = st.columns([1, 2.5])
     with c2a:
-        st.markdown('<div class="ship-icon">', unsafe_allow_html=True)
         st.image("hls.svg", use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
     with c2b:
         dry_m = st.slider("HLS DRY MASS (T)", 80, 250, 120, step=5)
         isp = st.slider("ENGINE ISP (S)", 350, 380, 365)
@@ -118,8 +109,8 @@ with col2:
 
 # PANEL 3: ORION
 with col3:
-    st.markdown('<div class="tactical-box"><div class="box-title">ORION MODE</div>', unsafe_allow_html=True)
-    c3a, c3b = st.columns([1, 3])
+    st.markdown('<div class="tactical-panel"><div class="panel-title">ORION MODE</div>', unsafe_allow_html=True)
+    c3a, c3b = st.columns([1, 4])
     with c3a:
         st.image("orion.svg", use_container_width=True)
     with c3b:
@@ -133,40 +124,48 @@ with col3:
         for m in modes:
             active = st.session_state.orion_mode == m
             if active:
+                # Force mint background and black text only for the active mode
                 st.markdown(f"<style>div.stButton > button:first-child:contains('{m}') {{ background-color: #98FF98 !important; color: black !important; font-weight: bold; }}</style>", unsafe_allow_html=True)
-            st.button(m, key=f"btn_{m}", on_click=set_mode, args=(m,))
+            st.button(m, key=f"btn_{m}", on_click=set_orion_mode, args=(m,))
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- MATH (BACKWARD INTEGRATION) ---
+# --- MISSION MATH ---
 G = 9.80665; OM = 27.0; CAP = 1500.0
 DV = {"LEO_TO_TLI": 3200, "TLI_TO_NRHO": 450, "TLI_TO_LLO": 900, "TLI_TO_PCO": 800, "NRHO_TO_SURFACE": 2750, "LLO_TO_SURFACE": 2000, "PCO_TO_SURFACE": 2400}
 
-def get_mission_log():
-    m = st.session_state.orion_mode; log = []
+def run_telemetry():
+    mode = st.session_state.orion_mode
+    log = []
+    # 1. Ascent
     dva = DV[f"{orbit}_TO_SURFACE"]; maf = dry_m; mai = maf * math.exp(dva / (isp * G))
     log.append({"LEG": "ASCENT: SURFACE TO ORBIT", "DV": dva, "WET MASS": f"{mai:.1f}T", "DRY MASS": f"{maf:.1f}T", "VEHICLE": "HLS"})
+    # 2. Descent
     dvd = dva; mdf = mai; mdi = mdf * math.exp(dvd / (isp * G))
     log.append({"LEG": "DESCENT: ORBIT TO SURFACE", "DV": dvd, "WET MASS": f"{mdi:.1f}T", "DRY MASS": f"{mdf:.1f}T", "VEHICLE": "HLS"})
     curr = mdi
-    if "NRHO TO LLO" in m:
+    # 3. Orion Pushes
+    if "NRHO to LLO" in mode:
         dvp = 450; mpf = curr + OM; mpi = mpf * math.exp(dvp / (isp * G))
         log.append({"LEG": "ORION PUSH (NRHO->LLO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
-    elif "NRHO TO PCO" in m:
+    elif "NRHO to PCO" in mode:
         dvp = 350; mpf = curr + OM; mpi = mpf * math.exp(dvp / (isp * G))
         log.append({"LEG": "ORION PUSH (NRHO->PCO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
-    elif "PCO TO LLO" in m:
+    elif "PCO to LLO" in mode:
         dvp = 400; mpf = curr + OM; mpi = mpf * math.exp(dvp / (isp * G))
         log.append({"LEG": "ORION PUSH (PCO->LLO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
-    dva2 = DV[f"TLI_TO_{orbit}"]; has_o = "LEO TO STAGING" in m
+    # 4. TLI Arrival
+    dva2 = DV[f"TLI_TO_{orbit}"]; has_o = "LEO to Staging" in mode
     ma2f = curr + (OM if has_o else 0); ma2i = ma2f * math.exp(dva2 / (isp * G))
     log.append({"LEG": f"ARRIVAL AT {orbit}", "DV": dva2, "WET MASS": f"{ma2i:.1f}T", "DRY MASS": f"{ma2f:.1f}T", "VEHICLE": f"HLS {'+ 27T ORION' if has_o else ''}"})
+    # 5. LEO Departure
     dvl = 3200; mlf = ma2i; mli = mlf * math.exp(dvl / (isp * G))
     log.append({"LEG": "TLI DEPARTURE (LEO)", "DV": dvl, "WET MASS": f"{mli:.1f}T", "DRY MASS": f"{mlf:.1f}T", "VEHICLE": f"HLS {'+ 27T ORION' if has_o else ''}"})
+    
     prop = mli - dry_m - (OM if has_o else 0)
-    if any(x in m for x in ["NRHO TO", "PCO TO"]): prop = mli - dry_m
+    if any(x in mode for x in ["NRHO to", "PCO to"]): prop = mli - dry_m
     return prop, log
 
-total_p, t_log = get_mission_log(); tanks = math.ceil(total_p / ref_amt); cost = tanks * cost_f
+total_p, mission_log = run_telemetry(); tanks = math.ceil(total_p / ref_amt); cost = tanks * cost_f
 
 # --- RESULTS ---
 st.markdown("### RESULTS")
@@ -181,12 +180,22 @@ with r2:
 with r3: st.metric("REFILL CAMPAIGN LENGTH", f"{tanks * cadence} DAYS")
 with r4: st.metric("REFILL CAMPAIGN COST", f"${cost/1000:.2f} B" if cost >= 1000 else f"${cost:,.0f} M")
 
-# TANKER FLEET DISPLAY (Shows all)
+# --- TANKER FLEET DISPLAY (FIXED IMAGE LOGIC) ---
 st.markdown("### TANKER FLEET")
-tanker_icons = "".join([f"<img src='tanker.svg' style='height:60px; margin:5px;'>" for _ in range(tanks)])
-st.markdown(f"<div class='fleet-grid'>{tanker_icons}</div>", unsafe_allow_html=True)
+# We loop through and display every tanker. Streamlit handles row-wrapping automatically.
+fleet_container = st.container()
+with fleet_container:
+    cols_per_row = 15  # Adjust this number to fit your screen width
+    rows = math.ceil(tanks / cols_per_row)
+    for r in range(rows):
+        fleet_cols = st.columns(cols_per_row)
+        for c in range(cols_per_row):
+            t_idx = r * cols_per_row + c
+            if t_idx < tanks:
+                with fleet_cols[c]:
+                    st.image("tanker.svg", use_container_width=True)
 
-# DETAILED READOUT
+# --- DETAILED MISSION READOUT ---
 st.markdown("---")
 st.markdown("### DETAILED MISSION READOUT")
-st.table(pd.DataFrame(t_log))
+st.table(pd.DataFrame(mission_log))
