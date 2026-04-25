@@ -6,7 +6,7 @@ import base64
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="HLS Mission Console", layout="wide")
 
-# --- UTILITY: ICON ENCODER ---
+# --- UTILITY: ICON ENCODER (For Stable Fleet Display) ---
 def get_b64(file):
     try:
         with open(file, "rb") as f:
@@ -15,87 +15,98 @@ def get_b64(file):
 
 t_64 = get_b64("tanker.svg")
 
-# --- THE "HARDENED" TACTICAL CSS ---
-st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
-
-    /* 1. TOP GAP REMOVAL */
-    [data-testid="stHeader"], [data-testid="stDecoration"], footer { display: none !important; }
-    .main .block-container { padding-top: 0rem !important; margin-top: -60px !important; }
-
-    /* 2. GLOBAL THEME */
-    .stApp { background-color: #000000 !important; color: #98FF98 !important; font-family: 'JetBrains Mono', monospace; }
-    h1, h2, h3, p, span, label, div { color: #98FF98 !important; text-transform: uppercase; }
-
-    /* 3. UNIFIED MINT BOXES */
-    [data-testid="stVerticalBlockBorderWrapper"] {
-        border: 1px solid #98FF98 !important;
-        background-color: #050505 !important;
-        padding: 20px !important;
-        min-height: 600px !important; /* Forces identical size */
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* 4. SHIP ICON EQUALIZER */
-    [data-testid="stImage"] img {
-        height: 200px !important;
-        width: auto !important;
-        object-fit: contain;
-        margin: 0 auto !important;
-        display: block;
-    }
-
-    /* 5. THE BUTTONS: THE DEFINITIVE FIX */
-    /* DEFAULT STATE: Grey Fill, Mint Outline, Mint Text */
-    .stButton > button {
-        width: 100% !important;
-        border: 1px solid #98FF98 !important;
-        background-color: #1a1a1a !important;
-        color: #98FF98 !important;
-        border-radius: 0px !important;
-        height: 40px !important;
-        font-size: 8.5px !important;
-        margin-bottom: 5px !important;
-        transition: all 0.2s ease;
-        text-transform: uppercase;
-    }
-
-    /* SELECTED STATE: Mint Green Fill, Black Text */
-    /* Target buttons where the label starts with the checkmark symbol */
-    button[aria-label^="✔"] {
-        background-color: #98FF98 !important;
-        color: #000000 !important;
-        font-weight: bold !important;
-        border: 1px solid #98FF98 !important;
-    }
-
-    /* 6. UI HARDENING (Dark Menus & Tables) */
-    div[data-baseweb="select"] > div { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
-    div[role="listbox"], div[data-baseweb="popover"], ul { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
-    
-    table { background-color: #000 !important; border: 1px solid #98FF98 !important; width: 100%; margin-top: 15px; }
-    th { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; text-align: left !important; }
-    td { border: 1px solid #333 !important; color: #98FF98 !important; padding: 10px !important; }
-
-    /* 7. FLEET GRID */
-    .fleet-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; padding: 15px; border: 1px solid #333; background: #050505; }
-
-    /* 8. METRICS & SLIDERS */
-    [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 32px !important; }
-    .warning-red { color: #FF3131 !important; font-weight: bold; }
-    .stSlider [data-baseweb="slider"] { background-color: transparent !important; }
-    hr { border: 0; border-top: 1px solid #333; margin: 15px 0; }
-    </style>
-    """, unsafe_allow_html=True)
-
 # --- STATE MANAGEMENT ---
 if 'orion_mode' not in st.session_state:
     st.session_state.orion_mode = "NO HLS PUSH"
 
 def set_mode(m):
     st.session_state.orion_mode = m
+
+# --- MODE DEFINITIONS ---
+modes = [
+    "NO HLS PUSH",
+    "HLS PUSH FROM LEO TO STAGING ORBIT",
+    "HLS PUSH FROM NRHO TO LLO",
+    "HLS PUSH FROM NRHO TO PCO",
+    "HLS PUSH FROM PCO TO LLO"
+]
+
+# Identify the index of the active mode for the CSS highlight
+active_idx = modes.index(st.session_state.orion_mode) + 1
+
+# --- THE HARDENED TACTICAL CSS ---
+st.markdown(f"""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
+
+    /* 1. TOP GAP REMOVAL */
+    [data-testid="stHeader"], [data-testid="stDecoration"], footer {{ display: none !important; }}
+    .main .block-container {{ padding-top: 0rem !important; margin-top: -60px !important; }}
+
+    /* 2. GLOBAL THEME */
+    .stApp {{ background-color: #000000 !important; color: #98FF98 !important; font-family: 'JetBrains Mono', monospace; }}
+    h1, h2, h3, p, span, label, div {{ color: #98FF98 !important; text-transform: uppercase; }}
+
+    /* 3. UNIFIED MINT BOXES (Forced Symmetry) */
+    [data-testid="stVerticalBlockBorderWrapper"] {{
+        border: 1px solid #98FF98 !important;
+        background-color: #050505 !important;
+        padding: 20px !important;
+        min-height: 600px !important;
+        display: flex;
+        flex-direction: column;
+    }}
+
+    /* 4. SHIP ICON EQUALIZER (Height Based) */
+    [data-testid="stImage"] img {{
+        height: 200px !important;
+        width: auto !important;
+        object-fit: contain;
+        margin: 0 auto !important;
+        display: block;
+    }}
+
+    /* 5. THE BUTTONS: THE DEFINITIVE COLOR FIX */
+    /* UNSELECTED: Mint Outline, Grey Fill, Mint Text */
+    .stButton > button {{
+        width: 100% !important;
+        border: 1px solid #98FF98 !important;
+        background-color: #333333 !important;
+        color: #98FF98 !important;
+        border-radius: 0px !important;
+        height: 42px !important;
+        font-size: 8.5px !important;
+        margin-bottom: 5px !important;
+        text-transform: uppercase;
+        transition: none !important;
+    }}
+
+    /* SELECTED: Mint Green Fill, Black Text */
+    /* We target the specific index of the button in the 3rd column */
+    div[data-testid="column"]:nth-of-type(3) .stButton:nth-of-type({active_idx}) button {{
+        background-color: #98FF98 !important;
+        color: #000000 !important;
+        font-weight: bold !important;
+    }}
+
+    /* 6. UI HARDENING (Dark Menus & Tables) */
+    div[data-baseweb="select"] > div {{ background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }}
+    div[role="listbox"], div[data-baseweb="popover"], ul {{ background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }}
+    
+    table {{ background-color: #000 !important; border: 1px solid #98FF98 !important; width: 100%; margin-top: 15px; }}
+    th {{ background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; text-align: left !important; }}
+    td {{ border: 1px solid #333 !important; color: #98FF98 !important; padding: 10px !important; }}
+
+    /* 7. FLEET GRID (Fleet Visualizer) */
+    .fleet-grid {{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; padding: 15px; border: 1px solid #333; background: #050505; }}
+
+    /* 8. METRICS & SLIDERS */
+    [data-testid="stMetricValue"] {{ color: #98FF98 !important; font-size: 32px !important; }}
+    .warning-red {{ color: #FF3131 !important; font-weight: bold; }}
+    .stSlider [data-baseweb="slider"] {{ background-color: transparent !important; }}
+    hr {{ border: 0; border-top: 1px solid #333; margin: 15px 0; }}
+    </style>
+    """, unsafe_allow_html=True)
 
 # --- UI START ---
 st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 20px;'>HLS MISSION LOGISTICS CONSOLE</h2>", unsafe_allow_html=True)
@@ -126,20 +137,9 @@ with col3:
         st.markdown("<p style='font-size:12px; font-weight:bold; letter-spacing:2px; margin-bottom:15px;'>ORION MODE</p>", unsafe_allow_html=True)
         st.image("orion.svg")
         
-        modes = [
-            "NO HLS PUSH",
-            "HLS PUSH FROM LEO TO STAGING ORBIT",
-            "HLS PUSH FROM NRHO TO LLO",
-            "HLS PUSH FROM NRHO TO PCO",
-            "HLS PUSH FROM PCO TO LLO"
-        ]
-        
+        # Render the buttons exactly as labeled
         for m in modes:
-            is_selected = st.session_state.orion_mode == m
-            # If selected, add the symbol that the CSS is looking for
-            label = f"✔ {m}" if is_selected else m
-            
-            st.button(label, key=f"btn_{m}", on_click=set_mode, args=(m,))
+            st.button(m, key=f"btn_{m}", on_click=set_mode, args=(m,))
 
 # --- MISSION MATH ---
 G = 9.80665; OM = 27.0; CAP = 1500.0
