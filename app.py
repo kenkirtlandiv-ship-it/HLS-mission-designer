@@ -4,33 +4,28 @@ import math
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="HLS Logistics Tool", layout="wide")
 
-# --- CLEAN MINT CSS ---
+# --- MINT TERMINAL CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
     .stApp {
-        background-color: #0f1110;
+        background-color: #0d0f0e;
         color: #98FF98;
         font-family: 'JetBrains Mono', monospace;
     }
 
-    /* Mint borders and text */
-    h1, h2, h3, p, span, label {
+    /* Set all UI text to Mint */
+    h1, h2, h3, p, span, label, .stSelectbox, .stSlider, .stRadio {
         color: #98FF98 !important;
         text-transform: uppercase;
     }
 
-    .stSlider [data-baseweb="slider"] {
-        background-color: transparent;
-    }
-
-    .mint-border {
-        border: 1px solid #98FF98;
-        border-radius: 4px;
-        padding: 15px;
-        margin-bottom: 10px;
-        background: rgba(152, 255, 152, 0.02);
+    /* Minimalist horizontal rule */
+    hr {
+        border: 0;
+        border-top: 1px solid #98FF98;
+        margin: 20px 0;
     }
 
     /* Metric styling */
@@ -38,68 +33,49 @@ st.markdown("""
         color: #98FF98 !important;
     }
 
-    /* Grid for tankers */
     .tanker-container {
         display: flex;
         flex-wrap: wrap;
-        gap: 5px;
+        gap: 8px;
         justify-content: flex-start;
-        margin-top: 10px;
+        margin-top: 15px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- SVG ASSETS ---
-TANKER_SVG = """<svg width="80" height="120" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg">
-    <path d="M30 5 L15 25 L15 85 L10 95 L50 95 L45 85 L45 25 Z" fill="#C0C0C0" stroke="#98FF98" stroke-width="1"/>
-    <path d="M15 25 L10 22 L10 30 Z M45 25 L50 22 L50 30 Z" fill="#C0C0C0" stroke="#98FF98"/>
-    <path d="M15 80 L5 85 L5 95 L15 90 Z M45 80 L55 85 L55 95 L45 90 Z" fill="#C0C0C0" stroke="#98FF98"/>
-</svg>"""
+# --- SVG PLACEHOLDERS (Replace these with your code) ---
+TANKER_SVG = """<svg width="100" height="150" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 5 L15 25 L15 85 L10 95 L50 95 L45 85 L45 25 Z" fill="#C0C0C0" stroke="#98FF98"/><path d="M15 25 L10 22 L10 30 M45 25 L50 22 L50 30 M15 80 L5 85 L15 90 M45 80 L55 85 L45 90" stroke="#98FF98"/></svg>"""
+HLS_SVG = """<svg width="100" height="150" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 5 L15 30 L15 85 L45 85 L45 30 Z" fill="#FFFFFF" stroke="#98FF98"/><rect x="25" y="15" width="10" height="5" fill="#333"/><line x1="15" y1="85" x2="8" y2="98" stroke="#98FF98" stroke-width="2"/><line x1="45" y1="85" x2="52" y2="98" stroke="#98FF98" stroke-width="2"/></svg>"""
+ORION_SVG = """<svg width="120" height="120" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M40 45 L50 25 L60 45 Z" fill="#C0C0C0" stroke="#98FF98"/><rect x="42" y="45" width="16" height="15" fill="#C0C0C0" stroke="#98FF98"/><rect x="5" y="50" width="35" height="4" fill="#555" stroke="#98FF98"/><rect x="60" y="50" width="35" height="4" fill="#555" stroke="#98FF98"/></svg>"""
 
-HLS_SVG = """<svg width="80" height="120" viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg">
-    <path d="M30 5 L15 30 L15 85 L45 85 L45 30 Z" fill="#FFFFFF" stroke="#98FF98" stroke-width="1"/>
-    <rect x="25" y="15" width="10" height="5" fill="#333"/>
-    <line x1="15" y1="85" x2="10" y2="98" stroke="#98FF98" stroke-width="2"/>
-    <line x1="45" y1="85" x2="50" y2="98" stroke="#98FF98" stroke-width="2"/>
-</svg>"""
-
-ORION_SVG = """<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <path d="M40 45 L50 25 L60 45 Z" fill="#C0C0C0" stroke="#98FF98" stroke-width="1"/>
-    <rect x="42" y="45" width="16" height="15" fill="#C0C0C0" stroke="#98FF98"/>
-    <rect x="10" y="50" width="32" height="4" fill="#555" stroke="#98FF98"/>
-    <rect x="58" y="50" width="32" height="4" fill="#555" stroke="#98FF98"/>
-    <path d="M45 60 L35 75 M55 60 L65 75" stroke="#98FF98" stroke-width="2"/>
-</svg>"""
-
-# --- INPUTS ---
-st.markdown("<h2 style='text-align: center;'>HLS REFILL CALCULATOR</h2>", unsafe_allow_html=True)
+# --- INPUT SECTION ---
+st.markdown("<h2 style='text-align: center; letter-spacing: 5px;'>HLS MISSION LOGISTICS</h2>", unsafe_allow_html=True)
+st.markdown("---")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.markdown("<div class='mint-border'>", unsafe_allow_html=True)
     st.markdown(TANKER_SVG, unsafe_allow_html=True)
     refill_amount = st.slider("PROP PER REFILL (t)", 50, 200, 100)
-    cadence = st.slider("CADENCE (DAYS)", 1, 31, 7)
-    st.markdown("</div>", unsafe_allow_html=True)
+    cadence = st.slider("LAUNCH CADENCE (DAYS)", 1, 31, 7)
 
 with col2:
-    st.markdown("<div class='mint-border'>", unsafe_allow_html=True)
     st.markdown(HLS_SVG, unsafe_allow_html=True)
-    dry_mass = st.slider("DRY MASS (t)", 80, 250, 120)
-    isp = st.slider("ISP (s)", 350, 380, 375)
+    dry_mass = st.slider("HLS DRY MASS (t)", 80, 250, 120)
+    isp = st.slider("ENGINE ISP (s)", 350, 380, 375)
     orbit = st.selectbox("STAGING ORBIT", ["NRHO", "LLO", "PCO"])
-    st.markdown("</div>", unsafe_allow_html=True)
 
 with col3:
-    st.markdown("<div class='mint-border'>", unsafe_allow_html=True)
     st.markdown(ORION_SVG, unsafe_allow_html=True)
-    push_options = ["No Push", "Push LEO to Staging", "Push Staging to LLO"]
-    if orbit == "LLO": push_options = ["Push LEO to Staging", "Push Staging to LLO"]
-    push_mode = st.radio("ORION MODE", push_options)
-    st.markdown("</div>", unsafe_allow_html=True)
+    # Filter modes based on Orbit selection
+    modes = ["Mode 1: No Push", "Mode 2: HLS Push LEO to Staging"]
+    if orbit == "LLO":
+        modes.append("Mode 3: HLS Push from NRHO to Staging")
+        modes.append("Mode 4: HLS Push from PCO to Staging")
+    
+    push_mode = st.radio("ORION MISSION MODE", modes)
 
-# --- MATH CORE ---
+# --- CALCULATION ENGINE (BACKWARD) ---
 G = 9.80665
 ORION_M = 27.0
 DV = {
@@ -108,63 +84,86 @@ DV = {
 }
 
 def calculate():
-    # 1. Ascent: Ends at Dry Mass
+    # 1. Ascent Phase: Ends at Staging Orbit with Dry Mass
     dv_ascent = DV[f"{orbit}_TO_SURFACE"]
     m_final_ascent = dry_mass
     m_init_ascent = m_final_ascent * math.exp(dv_ascent / (isp * G))
     
-    # 2. Descent: Ends at m_init_ascent
+    # 2. Descent Phase: Ends at Surface with m_init_ascent
     dv_descent = dv_ascent
     m_final_descent = m_init_ascent
     m_init_descent = m_final_descent * math.exp(dv_descent / (isp * G))
     
-    # 3. Orion Push (Staging to LLO)
-    m_before_push_leg = m_init_descent
-    if push_mode == "Push Staging to LLO":
-        dv_transfer = 450
-        m_final_push = m_before_push_leg + ORION_M
-        m_init_push = m_final_push * math.exp(dv_transfer / (isp * G))
-        # Mass after push leg is finished and Orion is dropped
-        m_before_push_leg = m_init_push - ORION_M
-
-    # 4. TLI / Departure
-    dv_tli = 3200 + DV[f"TLI_TO_{orbit}"]
-    orion_on_tli = ORION_M if push_mode == "Push LEO to Staging" else 0
-    m_final_tli = m_before_push_leg + orion_on_tli
-    m_init_tli = m_final_tli * math.exp(dv_tli / (isp * G))
+    m_current = m_init_descent
     
-    # Propellant is Total Initial Mass minus the payload we don't refill (Dry Mass + Orion)
-    total_prop = m_init_tli - dry_mass - orion_on_tli
-    if push_mode == "Push Staging to LLO":
-        # We also need to subtract the orion mass from the final calculation here
+    # 3. Intermediate Orion Push (Modes 3 & 4)
+    # Only applicable if Staging Orbit is LLO
+    if push_mode == "Mode 3: HLS Push from NRHO to Staging":
+        dv_push = 450 # Transfer NRHO to LLO
+        m_final_push = m_current + ORION_M
+        m_init_push = m_final_push * math.exp(dv_push / (isp * G))
+        m_current = m_init_push - ORION_M # Drop Orion at LLO, HLS mass remains
+    elif push_mode == "Mode 4: HLS Push from PCO to Staging":
+        dv_push = 400 # Transfer PCO to LLO estimate
+        m_final_push = m_current + ORION_M
+        m_init_push = m_final_push * math.exp(dv_push / (isp * G))
+        m_current = m_init_push - ORION_M
+
+    # 4. LEO to Staging Orbit
+    dv_tli_arrival = 3200 + DV[f"TLI_TO_{orbit}"]
+    
+    # Add Orion mass for the entire Earth-to-Moon leg if Mode 2
+    payload_on_tli = ORION_M if "Mode 2" in push_mode else 0
+    
+    m_final_tli = m_current + payload_on_tli
+    m_init_tli = m_final_tli * math.exp(dv_tli_arrival / (isp * G))
+    
+    # Final Propellant = Initial Mass at LEO minus the hardware we didn't "bring" as fuel
+    # (The dry mass of HLS and Orion if we pushed it)
+    total_prop = m_init_tli - dry_mass - payload_on_tli
+    
+    # Adjust for Mode 3/4 where Orion was picked up mid-way
+    if "Mode 3" in push_mode or "Mode 4" in push_mode:
+        # Initial mass at LEO included the fuel to pick up Orion, 
+        # but we subtract the dry mass at the end.
         total_prop = m_init_tli - dry_mass
-        if push_mode != "Push LEO to Staging": total_prop -= 0 # logic check
-        
+
     num_tankers = math.ceil(total_prop / refill_amount)
-    return total_prop, num_tankers, (m_init_tli, m_init_descent, m_init_ascent)
+    return total_prop, num_tankers, m_init_tli
 
-total_prop, num_tankers, stages = calculate()
+total_prop, num_tankers, leo_mass = calculate()
 
-# --- RESULTS ---
-st.markdown("<div class='mint-border'>", unsafe_allow_html=True)
-r_col1, r_col2, r_col3 = st.columns(3)
-with r_col1:
-    st.metric("TANKERS", num_tankers)
-with r_col2:
-    st.metric("TOTAL PROP", f"{total_prop:,.1f} t")
-with r_col3:
-    st.metric("TOTAL DAYS", num_tankers * cadence)
+# --- RESULTS SECTION ---
+st.markdown("---")
+res_col1, res_col2, res_col3 = st.columns(3)
 
-# Tanker visualization
-tanker_html = "".join([f"<div style='display:inline-block;'>{TANKER_SVG}</div>" for _ in range(num_tankers)])
-st.markdown(f"<div class='tanker-container'>{tanker_html}</div>", unsafe_allow_html=True)
+with res_col1:
+    st.metric("TANKERS REQUIRED", num_tankers)
+with res_col2:
+    st.metric("TOTAL PROPELLANT", f"{total_prop:,.1f} T")
+with res_col3:
+    st.metric("MISSION DURATION", f"{num_tankers * cadence} DAYS")
+
+# Horizontal Tanker Row
+tanker_icons = "".join([f"<div style='display:inline-block;'>{TANKER_SVG}</div>" for _ in range(num_tankers)])
+st.markdown(f"<div class='tanker-container'>{tanker_icons}</div>", unsafe_allow_html=True)
 
 # Math Readout
-st.markdown("### MISSION LOG (BACKWARD INTEGRATION)")
-st.text(f"""
-[1] TLI DEPARTURE: Start Mass {stages[0]:.1f}t (Includes Prop + HLS + Orion if selected)
-[2] LUNAR ARRIVAL: HLS Mass {stages[1]:.1f}t (Post-TLI, Pre-Descent)
-[3] LUNAR SURFACE: HLS Mass {stages[2]:.1f}t (Ready for Ascent)
-[4] MISSION END:   HLS Dry Mass {dry_mass:.1f}t (Docked in {orbit})
-""")
-st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("---")
+with st.expander("VIEW TELEMETRY (MATH READOUT)"):
+    st.text(f"""
+    MISSION STAGING: {orbit}
+    TARGET ORION MODE: {push_mode}
+    
+    [STATION 1] LEO DEPARTURE
+    Total Mass: {leo_mass:.1f} t
+    
+    [STATION 2] LUNAR ARRIVAL
+    HLS Mass: {(leo_mass * math.exp(-(3200 + DV[f'TLI_TO_{orbit}']) / (isp * G))):.1f} t
+    
+    [STATION 3] LUNAR SURFACE
+    HLS Mass: {(dry_mass * math.exp(DV[f'{orbit}_TO_SURFACE'] / (isp * G))):.1f} t
+    
+    [STATION 4] MISSION COMPLETE
+    Final HLS Mass: {dry_mass:.1f} t
+    """)
