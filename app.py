@@ -5,20 +5,20 @@ import pandas as pd
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="HLS Mission Console", layout="wide")
 
-# --- GLOBAL THEME & TOP GAP FIX ---
+# --- GLOBAL CSS: THE HARDENED INTERFACE ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
-    /* 1. ABSOLUTE TOP GAP REMOVAL */
+    /* 1. REMOVE GHOST HEADER & TOP GAP */
     [data-testid="stHeader"], [data-testid="stDecoration"], footer { display: none !important; }
-    .main .block-container { padding-top: 0rem !important; margin-top: -60px !important; }
+    .main .block-container { padding-top: 1rem !important; margin-top: -50px !important; }
 
-    /* 2. GLOBAL COLORS */
+    /* 2. BASE THEME */
     .stApp { background-color: #000000 !important; color: #98FF98 !important; font-family: 'JetBrains Mono', monospace; }
     h1, h2, h3, p, span, label, div { color: #98FF98 !important; text-transform: uppercase; }
 
-    /* 3. TACTICAL PANEL BOXES */
+    /* 3. TACTICAL BOXES */
     [data-testid="column"] {
         border: 1px solid #98FF98 !important;
         padding: 20px !important;
@@ -26,42 +26,58 @@ st.markdown("""
         min-height: 520px !important;
     }
 
-    /* 4. DROPDOWN (SELECTBOX) DARKNESS */
+    /* 4. THE WHITE DROPDOWN FIX */
     div[data-baseweb="select"] > div { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
-    div[role="listbox"], div[data-baseweb="popover"], ul { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
+    div[data-baseweb="popover"], div[role="listbox"], ul { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
+    li[role="option"] { background-color: #1a1a1a !important; color: #98FF98 !important; }
+    li[role="option"]:hover { background-color: #333 !important; }
 
-    /* 5. BUTTON DEFAULTS */
+    /* 5. DYNAMIC BUTTON HIGHLIGHTING */
+    /* Target the buttons globally */
     .stButton > button {
         width: 100% !important;
         border: 1px solid #98FF98 !important;
         background-color: #1a1a1a !important;
         color: #98FF98 !important;
         border-radius: 0px !important;
-        height: 45px !important;
+        height: 48px !important;
         font-size: 10px !important;
         margin-bottom: 8px !important;
+        transition: 0.2s;
     }
 
-    /* 6. TABLE STYLING */
-    table { background-color: #000 !important; border: 1px solid #98FF98 !important; width: 100%; margin-top: 10px;}
-    th { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; }
+    /* 6. TANKER FLEET DISPLAY (No-Crash Flexbox) */
+    .fleet-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        background: #050505;
+        padding: 15px;
+        border: 1px solid #333;
+    }
+    .fleet-grid img { height: 50px !important; width: auto !important; }
+
+    /* 7. TABLE & MISSION READOUT */
+    table { background-color: #000 !important; border: 1px solid #98FF98 !important; width: 100%; }
+    th { background-color: #1a1a1a !important; color: #98FF98 !important; border: 1px solid #98FF98 !important; text-align: left !important; }
     td { border: 1px solid #333 !important; color: #98FF98 !important; padding: 10px !important; }
 
-    /* 7. METRICS */
+    /* 8. METRICS */
     [data-testid="stMetricValue"] { color: #98FF98 !important; font-size: 32px !important; }
     .warning-red { color: #FF3131 !important; font-weight: bold; }
+    .stSlider [data-baseweb="slider"] { background-color: transparent !important; }
     hr { border: 0; border-top: 1px solid #333; margin: 15px 0; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- SESSION STATE ---
+# --- SESSION STATE & LOGIC ---
 if 'orion_mode' not in st.session_state:
     st.session_state.orion_mode = "NO HLS PUSH"
 
-def update_mode(m):
-    st.session_state.orion_mode = m
+def change_mode(new_mode):
+    st.session_state.orion_mode = new_mode
 
-# --- LAYOUT START ---
+# --- UI HEADER ---
 st.markdown("<h2 style='text-align: center; letter-spacing: 5px; margin-bottom: 20px;'>HLS MISSION LOGISTICS CONSOLE</h2>", unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
@@ -71,8 +87,7 @@ with col1:
     st.markdown("<p style='font-size: 14px; font-weight: bold;'>STARSHIP REFILL TANKER</p>", unsafe_allow_html=True)
     c1a, c1b = st.columns([1, 2.5])
     with c1a:
-        # Standardized height to match HLS
-        st.image("tanker.svg", height=220)
+        st.image("tanker.svg", height=240)
     with c1b:
         ref_amt = st.slider("PROP PER REFILL (T)", 50, 200, 100, step=5)
         cadence = st.slider("CADENCE (DAYS)", 1, 31, 7)
@@ -83,8 +98,7 @@ with col2:
     st.markdown("<p style='font-size: 14px; font-weight: bold;'>HLS STARSHIP</p>", unsafe_allow_html=True)
     c2a, c2b = st.columns([1, 2.5])
     with c2a:
-        # Standardized height to match Tanker
-        st.image("hls.svg", height=220)
+        st.image("hls.svg", height=240)
     with c2b:
         dry_m = st.slider("HLS DRY MASS (T)", 80, 250, 120, step=5)
         isp = st.slider("ENGINE ISP (S)", 350, 380, 365)
@@ -97,64 +111,66 @@ with col3:
     with c3a:
         st.image("orion.svg", use_container_width=True)
     with c3b:
-        orion_options = [
+        modes = [
             "NO HLS PUSH",
             "HLS PUSH FROM LEO TO STAGING ORBIT",
             "HLS PUSH FROM NRHO TO LLO",
             "HLS PUSH FROM NRHO TO PCO",
             "HLS PUSH FROM PCO TO LLO"
         ]
-        
-        for m in orion_options:
-            is_active = st.session_state.orion_mode == m
-            # Surgical CSS injection to force button color change
-            if is_active:
-                st.markdown(f"""
-                    <style>
-                    div.stButton > button:first-child:contains('{m}') {{
-                        background-color: #98FF98 !important;
-                        color: black !important;
-                        font-weight: bold !important;
-                    }}
-                    </style>
-                """, unsafe_allow_html=True)
+        for m in modes:
+            active = (st.session_state.orion_mode == m)
+            # Injecting Highlight CSS for the selected button
+            if active:
+                st.markdown(f"""<style>div.stButton > button:first-child:contains('{m}') {{ background-color: #98FF98 !important; color: black !important; font-weight: bold !important; }}</style>""", unsafe_allow_html=True)
             
-            st.button(m, key=f"btn_{m}", on_click=update_mode, args=(m,))
+            st.button(m, key=f"btn_{m}", on_click=change_mode, args=(m,))
 
-# --- PHYSICS ---
+# --- BACKWARD INTEGRATION MATH ---
 G = 9.80665; OM = 27.0; CAP = 1500.0
 DV = {"LEO_TO_TLI": 3200, "TLI_TO_NRHO": 450, "TLI_TO_LLO": 900, "TLI_TO_PCO": 800, "NRHO_TO_SURFACE": 2750, "LLO_TO_SURFACE": 2000, "PCO_TO_SURFACE": 2400}
 
-def get_telemetry():
+def get_mission_data():
     mode = st.session_state.orion_mode
-    log = []
+    readout = []
+    
+    # 1. Ascent Phase
     dva = DV[f"{orbit}_TO_SURFACE"]; maf = dry_m; mai = maf * math.exp(dva / (isp * G))
-    log.append({"LEG": "ASCENT: SURFACE TO ORBIT", "DV": dva, "WET MASS": f"{mai:.1f}T", "DRY MASS": f"{maf:.1f}T", "VEHICLE": "HLS"})
+    readout.append({"LEG": "ASCENT: SURFACE TO ORBIT", "DV": dva, "WET MASS": f"{mai:.1f}T", "DRY MASS": f"{maf:.1f}T", "VEHICLE": "HLS"})
+
+    # 2. Descent Phase
     dvd = dva; mdf = mai; mdi = mdf * math.exp(dvd / (isp * G))
-    log.append({"LEG": "DESCENT: ORBIT TO SURFACE", "DV": dvd, "WET MASS": f"{mdi:.1f}T", "DRY MASS": f"{mdf:.1f}T", "VEHICLE": "HLS"})
+    readout.append({"LEG": "DESCENT: ORBIT TO SURFACE", "DV": dvd, "WET MASS": f"{mdi:.1f}T", "DRY MASS": f"{mdf:.1f}T", "VEHICLE": "HLS"})
     curr = mdi
+    
+    # 3. Orion Logistics
     if "NRHO TO LLO" in mode:
         dvp = 450; mpf = curr + OM; mpi = mpf * math.exp(dvp / (isp * G))
-        log.append({"LEG": "ORION PUSH (NRHO->LLO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
+        readout.append({"LEG": "ORION PUSH (NRHO->LLO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
     elif "NRHO TO PCO" in mode:
         dvp = 350; mpf = curr + OM; mpi = mpf * math.exp(dvp / (isp * G))
-        log.append({"LEG": "ORION PUSH (NRHO->PCO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
+        readout.append({"LEG": "ORION PUSH (NRHO->PCO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
     elif "PCO TO LLO" in mode:
         dvp = 400; mpf = curr + OM; mpi = mpf * math.exp(dvp / (isp * G))
-        log.append({"LEG": "ORION PUSH (PCO->LLO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
+        readout.append({"LEG": "ORION PUSH (PCO->LLO)", "DV": dvp, "WET MASS": f"{mpi:.1f}T", "DRY MASS": f"{mpf:.1f}T", "VEHICLE": "HLS + 27T ORION"}); curr = mpi - OM
+
+    # 4. Lunar Arrival
     dva2 = DV[f"TLI_TO_{orbit}"]; has_o = "LEO TO STAGING" in mode
     ma2f = curr + (OM if has_o else 0); ma2i = ma2f * math.exp(dva2 / (isp * G))
-    log.append({"LEG": f"ARRIVAL AT {orbit}", "DV": dva2, "WET MASS": f"{ma2i:.1f}T", "DRY MASS": f"{ma2f:.1f}T", "VEHICLE": f"HLS {'+ 27T ORION' if has_o else ''}"})
+    readout.append({"LEG": f"ARRIVAL AT {orbit}", "DV": dva2, "WET MASS": f"{ma2i:.1f}T", "DRY MASS": f"{ma2f:.1f}T", "VEHICLE": f"HLS {'+ 27T ORION' if has_o else ''}"})
+
+    # 5. LEO Departure
     dvl = 3200; mlf = ma2i; mli = mlf * math.exp(dvl / (isp * G))
-    log.append({"LEG": "TLI DEPARTURE (LEO)", "DV": dvl, "WET MASS": f"{mli:.1f}T", "DRY MASS": f"{mlf:.1f}T", "VEHICLE": f"HLS {'+ 27T ORION' if has_o else ''}"})
+    readout.append({"LEG": "TLI DEPARTURE (LEO)", "DV": dvl, "WET MASS": f"{mli:.1f}T", "DRY MASS": f"{mlf:.1f}T", "VEHICLE": f"HLS {'+ 27T ORION' if has_o else ''}"})
+    
     prop = mli - dry_m - (OM if has_o else 0)
     if any(x in mode for x in ["NRHO TO", "PCO TO"]): prop = mli - dry_m
-    return prop, log
+    return prop, readout
 
-total_p, t_log = get_telemetry(); tanks = math.ceil(total_p / ref_amt); cost = tanks * cost_f
+total_p, t_log = get_mission_data(); tanks = math.ceil(total_p / ref_amt); cost = tanks * cost_f
 
 # --- RESULTS ---
-st.markdown("<h3 style='margin-top:20px;'>RESULTS</h3><hr>", unsafe_allow_html=True)
+st.markdown("<h3 style='margin-top: 20px;'>RESULTS</h3><hr>", unsafe_allow_html=True)
 r1, r2, r3, r4 = st.columns(4)
 with r1: st.metric("TANKERS", tanks)
 with r2: 
@@ -165,16 +181,13 @@ with r2:
 with r3: st.metric("REFILL CAMPAIGN LENGTH", f"{tanks * cadence} DAYS")
 with r4: st.metric("REFILL CAMPAIGN COST", f"${cost/1000:.2f} B" if cost >= 1000 else f"${cost:,.0f} M")
 
-# --- TANKER FLEET DISPLAY ---
+# --- TANKER FLEET DISPLAY (FIXED) ---
 st.markdown("### TANKER FLEET")
-# Dynamically create columns based on the number of tankers to ensure they all show
-t_row = st.container()
-with t_row:
-    cols = st.columns(min(max(tanks, 1), 20)) # Display up to 20 wide, then wraps
-    for i in range(tanks):
-        cols[i % 20].image("tanker.svg", use_container_width=True)
+# Generate tanker HTML directly to avoid Streamlit column errors
+tanker_icons = "".join([f"<img src='tanker.svg' style='height:50px; margin:5px;'>" for _ in range(tanks)])
+st.markdown(f"<div class='fleet-grid'>{tanker_icons}</div>", unsafe_allow_html=True)
 
-# --- DETAILED MISSION READOUT ---
+# --- AUTOMATIC READOUT ---
 st.markdown("---")
 st.markdown("### DETAILED MISSION READOUT")
 st.table(pd.DataFrame(t_log))
